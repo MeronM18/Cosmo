@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Cosmo",
+    "slug": "cosmo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vengeanceintelligence.cosmo",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Cosmo uses your location to show astronomical information relevant to your position."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.vengeanceintelligence.cosmo"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "scheme": "cosmo",
+    "plugins": [
+      "expo-apple-authentication",
+      "@react-native-google-signin/google-signin",
+      "expo-font"
+    ]
+  }
+}
