@@ -1,42 +1,42 @@
-# ✨ Day 2: Cosmic Landing Experience & Motion Design
+# �� Day 2: Real Astro Data, Location, and API Validation
 
 ## What I Built Today
-Focused on crafting a premium, cinematic landing experience that feels cosmic, alive, and welcoming.
+Focused on hooking up real, live data and validating the core astro pipeline end‑to‑end.
 
-### 🌌 Animated Landing Screen
-- **Dynamic Starfield**: Procedurally generated stars with independent twinkle animations
-- **Shooting Stars**: Randomized trajectories, motion and fade with the native driver
-- **Layered Gradients**: Atmospheric background with depth and contrast for text
-- **Brand Block**: Animated brand title and subtitle with graceful fade/slide-in
-- **CTA Button**: Interactive button with breathing glow, inner halo, and tap ripple
+### 🔭 Live Astronomical Data
+- Wired up real ephemeris/astro endpoints for accurate positions
+- Implemented moon phase calculations sourced from live data
+- Birth chart scaffolding reading from ephemeris responses
 
-### 🎬 Motion System
-- Built with the React Native Animated API: `timing`, `spring`, `sequence`, `parallel`, `loop`
-- `useNativeDriver` everywhere possible for 60fps smoothness
-- Staggered timings for natural pacing (background → logo → title → subtitle → CTA)
-- Clean orchestration with simple cleanup-safe patterns
+### 📍 Location Tracking
+- Requested and handled location permissions on iOS
+- Fetched device coordinates for geolocation-aware calculations
+- Normalized lat/long/timezone inputs for chart generation
 
-### 📱 UX Details
-- StatusBar tuned for a dark, cinematic look
-- Responsive layout using `Dimensions`
-- Text shadows and soft glows to maintain readability over artwork
+### ✅ Testing & API Checks
+- Added a testing flow to validate endpoints and responses
+- Verified happy-path + error scenarios (timeouts, invalid inputs)
+- Logged request/response payloads in the test screen for debugging
 
-## Files Touched
-- `src/screens/LandingScreen.tsx` — Animated landing (stars, shooting stars, brand, CTA)
-- `assets/cosmo-landing.png` — Background illustration integration
+### 🐛 Bugs I Hit (and wrestled)
+- Permission edge cases and delayed location resolution 😅
+- Response shape differences across providers
+- Timezone and timestamp normalization glitches
 
-## Key Technical Notes
-- Procedural star generation and independent twinkling via chained `Animated.sequence`
-- Shooting stars animate translation and opacity with randomized delays
-- CTA press feedback: scale spring + expanding ripple effect
-- Layering strategy: artwork → atmospheric gradient → star overlays → brand/CTA
+### Files Touched (high level)
+- `src/services/astronomical.ts`
+- `src/services/astronomicalAPIs.ts`
+- `src/services/astronomicalService.ts`
+- `src/screens/TestScreen.tsx`
+- `supabase/functions/get-ephemeris/index.ts`
 
-## Current Status
-- ✅ Landing experience implemented with polished motion and visuals
-- ✅ Performance tuned with native driver and batched animations
-- 🔄 Ready for typography and brand polish
+### 📊 Current Status
+- ✅ Real astro data flowing
+- ✅ Location integrated and consumed
+- ✅ Charts + moon phases reading from live sources
+- 🔄 Polishing error messaging and edge cases
 
-## Next Steps
-- Introduce brand typography across splash and landing
-- Smooth out the splash typing experience
-- Wire up repo publishing to GitHub for collaboration
+### 🎯 Next Up
+- Landing page design 🔜
+- Deeper chart rendering + richer visuals
+- Cache and fallback strategies for offline/slow networks
