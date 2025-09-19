@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import * as Linking from 'expo-linking';
-import { openBrowserAsync, dismissBrowser } from 'expo-web-browser';
+import { openAuthSessionAsync, openBrowserAsync, dismissBrowser } from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
+import * as AuthSession from 'expo-auth-session';
 
 // Keep a process-wide set of processed OAuth authorization codes
 const processedOAuthCodes = new Set<string>();
@@ -61,14 +62,17 @@ export class AuthService {
 
   static async signInWithGoogle() {
     try {
-      // For development, keep using Expo URL
-      // For production with custom domain, use: 'https://auth.cosmoapp.com/auth/v1/callback'
-      const redirectTo = Linking.createURL('/auth/callback');
-      
+      console.log('🔄 Starting Google OAuth (openAuthSessionAsync) for Expo Go...');
+
+      // Use the canonical Expo Go return URL that our handler understands
+      const returnUrl = Linking.createURL('/--/auth/callback');
+      console.log('📍 Return URL:', returnUrl);
+
+      // Kick off OAuth with Supabase using the same return URL
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo,
+          redirectTo: returnUrl,
           scopes: 'email profile openid',
           queryParams: {
             access_type: 'offline',
@@ -78,18 +82,38 @@ export class AuthService {
       });
 
       if (error) throw error;
-      
-      if (data?.url) {
-        console.log('Opening OAuth URL:', data.url);
-        const result = await openBrowserAsync(data.url, {
-          dismissButtonStyle: 'done',
-        });
-        console.log('Browser result:', result);
+      if (!data?.url) throw new Error('No OAuth URL received from Supabase');
+
+      console.log('🌐 Opening OAuth auth session...');
+      const result = await openAuthSessionAsync(data.url, returnUrl);
+      console.log('🔍 Auth session result:', result);
+
+      if (result.type === 'success' && result.url) {
+        // Parse code from the returned URL and exchange immediately
+        const urlObj = new URL(result.url);
+        const code = urlObj.searchParams.get('code');
+        const err = urlObj.searchParams.get('error');
+
+        if (err) throw new Error(`OAuth error: ${err}`);
+        if (!code) throw new Error('No authorization code found in callback URL');
+
+        console.log('🔑 Exchanging authorization code for session...');
+        const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) throw exchangeError;
+
+        console.log('🎉 Google OAuth completed:', sessionData.user?.email);
+        return { user: sessionData.user, session: sessionData.session };
       }
-      
-      return data;
+
+      if (result.type === 'cancel') throw new Error('OAuth cancelled by user');
+
+      // As a fallback, check for a session in case auth state changed
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) return { user: session.user, session };
+
+      throw new Error(`OAuth failed: ${result.type}`);
     } catch (error: any) {
-      console.error('OAuth error:', error);
+      console.error('💥 Google OAuth error:', error);
       throw error;
     }
   }
@@ -282,5 +306,12 @@ export class AuthService {
       
       callback(event, session);
     });
+  }
+
+  // Mark onboarding as completed (no-op placeholder since profile upsert is authoritative)
+  static async setCompletedOnboarding(): Promise<void> {
+    // Profile upsert during onboarding is the source of truth.
+    // This method exists to satisfy control flow after persistence.
+    return;
   }
 }

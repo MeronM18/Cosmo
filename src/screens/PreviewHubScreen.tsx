@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import LandingScreen from './LandingScreen';
 import SplashScreen from './SplashScreen';
+import OnboardingScreen from './OnboardingScreen';
+import PaywallScreen from './PaywallScreen';
+import LoadingScreen from './LoadingScreen';
+import HomeScreen from './HomeScreen';
 
 interface PreviewHubScreenProps {
   onClose?: () => void;
 }
 
-type Mode = 'menu' | 'landing' | 'splash';
+type Mode = 'menu' | 'landing' | 'splash' | 'onboarding' | 'paywall' | 'loading' | 'home';
 
 export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
   const [mode, setMode] = useState<Mode>('menu');
@@ -42,6 +46,42 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
     );
   }
 
+  if (mode === 'onboarding') {
+    return (
+      <View style={{ flex: 1 }}>
+        <OnboardingScreen onComplete={() => setMode('menu')} />
+      </View>
+    );
+  }
+
+  if (mode === 'paywall') {
+    return (
+      <View style={{ flex: 1 }}>
+        <PaywallScreen onClose={() => setMode('menu')} />
+      </View>
+    );
+  }
+
+  if (mode === 'loading') {
+    return (
+      <View style={{ flex: 1 }}>
+        <LoadingScreen 
+          message="Loading your cosmic journey..." 
+          onComplete={() => setMode('menu')}
+          onClose={() => setMode('menu')}
+        />
+      </View>
+    );
+  }
+
+  if (mode === 'home') {
+    return (
+      <View style={{ flex: 1 }}>
+        <HomeScreen onClose={() => setMode('menu')} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.topClose} onPress={onClose} activeOpacity={0.7}>
@@ -52,11 +92,23 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
       <Text style={styles.subtitle}>Open any screen in full-screen preview</Text>
 
       <View style={styles.buttonStack}>
-        <TouchableOpacity style={styles.button} onPress={() => setMode('landing')}>
-          <Text style={styles.buttonText}>Landing Page</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => setMode('splash')}>
-          <Text style={styles.buttonText}>Splash Page</Text>
+          <Text style={styles.buttonText}>Splash</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('landing')}>
+          <Text style={styles.buttonText}>Landing</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('onboarding')}>
+          <Text style={styles.buttonText}>Onboarding</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('paywall')}>
+          <Text style={styles.buttonText}>Paywall</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('home')}>
+          <Text style={styles.buttonText}>Homepage</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('loading')}>
+          <Text style={styles.buttonText}>Loading</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -100,7 +152,7 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: 'absolute',
-    top: 64,
+    top: 104,
     right: 20,
     width: 36,
     height: 36,
@@ -117,7 +169,7 @@ const styles = StyleSheet.create({
   },
   topClose: {
     position: 'absolute',
-    top: 20,
+    top: 70,
     right: 20,
     width: 36,
     height: 36,

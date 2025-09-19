@@ -89,6 +89,21 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
     }
   };
 
+  const testDeepLink = async () => {
+    try {
+      addResult('Testing deep link handling...');
+      const testUrl = 'exp://141.210.83.231:8081/--/auth/callback?code=test123&state=test';
+      addResult(`Simulating deep link: ${testUrl}`);
+      
+      // Import Linking to test
+      const { Linking } = require('react-native');
+      await Linking.openURL(testUrl);
+      addResult('Deep link test sent - check logs for processing');
+    } catch (error: any) {
+      addResult(`Deep link test error: ${error.message}`);
+    }
+  };
+
   const testSignOut = async () => {
     try {
       addResult('Signing out...');
@@ -618,6 +633,14 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
           disabled={loading}
         >
           <Text style={styles.buttonText}>Check Session</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: '#8b5cf6' }]} 
+          onPress={testDeepLink}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>Test Deep Link</Text>
         </TouchableOpacity>
       </View>
 
