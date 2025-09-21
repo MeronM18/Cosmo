@@ -470,7 +470,7 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
       addResult(`Using current location: (${currentLocation.latitude.toFixed(4)}, ${currentLocation.longitude.toFixed(4)})`);
       
       let successCount = 0;
-      let totalTests = 3;
+      let totalTests = 4;
       
       // Test FarmSense Moon API directly
       addResult('Testing FarmSense Moon API directly...');
@@ -557,6 +557,43 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
         }
       } catch (error: any) {
         addResult(`❌ USNO API: Network error - ${error.message}`);
+      }
+      
+      // Test Supabase Horoscope API
+      addResult('Testing Supabase Horoscope API...');
+      try {
+        const testUser = {
+          zodiacSign: 'Aries',
+          birthDate: new Date('1990-04-15'),
+          subscriptionLevel: 'free' as const
+        };
+        
+        const response = await fetch('https://adyrgavblydgdvttttwn.supabase.co/functions/v1/generate-horoscope', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFkeXJnYXZibHlkZ2R2dHR0dHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczODk5MjksImV4cCI6MjA3Mjk2NTkyOX0.wc5KPXufeFqWSdK4-dYsZUg6lQmEh1X4ZiS4z1L9ahI'
+          },
+          body: JSON.stringify({
+            zodiacSign: testUser.zodiacSign,
+            birthDate: testUser.birthDate,
+            period: 'today',
+            style: 'gentle',
+            length: 'standard',
+            focusAreas: ['love', 'career'],
+            isPremium: false
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          addResult(`✅ Supabase Horoscope API: HTTP ${response.status}, Success: ${data.success || 'Unknown'}`);
+          successCount++;
+        } else {
+          addResult(`❌ Supabase Horoscope API: HTTP ${response.status} ${response.statusText}`);
+        }
+      } catch (error: any) {
+        addResult(`❌ Supabase Horoscope API: Network error - ${error.message}`);
       }
       
       // Summary
