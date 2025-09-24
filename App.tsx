@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { dismissBrowser } from 'expo-web-browser';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AppNavigator from './src/components/AppNavigator';
 import { supabase } from './src/services/supabase';
 import { useFonts as useCinzel, Cinzel_400Regular, Cinzel_600SemiBold, Cinzel_700Bold } from '@expo-google-fonts/cinzel';
@@ -114,10 +115,12 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container}>
-      <AppNavigator />
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <View style={styles.container}>
+        <AppNavigator />
+        <StatusBar style="auto" />
+      </View>
+    </SafeAreaProvider>
   );
 }
 

@@ -12,6 +12,12 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Cinzel_700Bold, Cinzel_400Regular } from '@expo-google-fonts/cinzel';
 import * as Haptics from 'expo-haptics';
+import { AppColors } from '../theme/appTheme';
+import HoroscopesContent from '../components/HoroscopesContent';
+import LunaContent from '../components/LunaContent';
+import SoulmateContent from '../components/SoulmateContent';
+import LunaChatContent from '../components/LunaChatContent';
+import LunaIntroScreen from '../components/LunaIntroScreen';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,20 +32,33 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
   });
 
   const [selectedTab, setSelectedTab] = useState('horoscopes');
+  const [lunaRoomState, setLunaRoomState] = useState<'intro' | 'chat'>('intro');
   const scrollY = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
   const navIndicatorAnim = useRef(new Animated.Value(0)).current;
+  const navBarOpacity = useRef(new Animated.Value(1)).current;
+  const navBarTranslateY = useRef(new Animated.Value(0)).current;
 
   // Sample data - in real app this would come from API
   const userData = {
     name: "Sarah",
     zodiacSign: "Scorpio",
-    zodiacSymbol: "♏",
+    zodiacSymbol: "Scorpio",
     isPremium: false,
     readingStreak: 7,
     cosmicRating: 4,
     luckyNumbers: [7, 14, 23, 31],
     compatibleSigns: ["Cancer", "Pisces", "Capricorn"]
+  };
+
+  // LunaContent compatible user data
+  const lunaUserData = {
+    name: "Sarah",
+    zodiacSign: "Scorpio",
+    birthDate: new Date('1990-11-15'),
+    birthTime: new Date('1990-11-15T14:30:00'),
+    birthLocation: "New York, NY",
+    subscriptionLevel: userData.isPremium ? 'premium' as const : 'free' as const
   };
 
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -54,6 +73,39 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
   useEffect(() => {
     const listener = scrollY.addListener(({ value }) => {
       parallaxAnim.setValue(value * 0.5);
+      
+      // Navigation bar hide/show logic - immediate response with smooth animation
+      const scrollThreshold = 100; // Hide nav bar after scrolling 100px
+      
+      if (value > scrollThreshold) {
+        // Hide navigation bar with smooth animation when scrolling down past threshold
+        Animated.parallel([
+          Animated.timing(navBarOpacity, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(navBarTranslateY, {
+            toValue: 100,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      } else {
+        // Show navigation bar with smooth animation when scrolling back up
+        Animated.parallel([
+          Animated.timing(navBarOpacity, {
+            toValue: 1,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(navBarTranslateY, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      }
     });
 
     // Initialize navigation indicator position
@@ -68,6 +120,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedTab(tab);
     
+    // Reset Luna room state when switching tabs
+    if (tab !== 'chat') {
+      setLunaRoomState('intro');
+    }
+    
     // Animate the navigation indicator
     const tabIndex = ['horoscopes', 'moon', 'compatibility', 'chat'].indexOf(tab);
     Animated.spring(navIndicatorAnim, {
@@ -76,6 +133,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
       tension: 100,
       friction: 8,
     }).start();
+  };
+
+  const handleEnterLunaRoom = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setLunaRoomState('chat');
+  };
+
+  const handleExitLunaRoom = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setLunaRoomState('intro');
   };
 
   const handleCardPress = () => {
@@ -120,18 +187,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
         <Text style={styles.closeButtonText}>✕</Text>
       </TouchableOpacity>
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.pageTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-            ⭐ Your Horoscopes
-          </Text>
-          <Text style={styles.date}>{currentDate}</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Text style={styles.settingsIcon}>⋯</Text>
-          </TouchableOpacity>
+      {/* Header (hidden in Luna chat room) */}
+      {!(selectedTab === 'chat' && lunaRoomState === 'chat') && (
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={[styles.pageTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
+              Welcome back, {userData.name}
+            </Text>
+            <Text style={styles.date}>{currentDate}</Text>
+          </View>
           <TouchableOpacity style={styles.profileAvatar}>
             <LinearGradient
               colors={['#FFD700', '#FFA500']}
@@ -141,226 +205,62 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </View>
+      )}
 
       {/* Main Content */}
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
-      >
-        {/* Reading Streak Badge */}
-        <View style={styles.streakBadge}>
-          <Text style={styles.streakText}>🔥 {userData.readingStreak} day reading streak!</Text>
-        </View>
+      {selectedTab === 'horoscopes' ? (
+        <HoroscopesContent 
+          userData={userData} 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+        />
+      ) : selectedTab === 'compatibility' ? (
+        <SoulmateContent 
+          userData={userData} 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+        />
+      ) : selectedTab === 'moon' ? (
+        <LunaContent 
+          userData={lunaUserData} 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+        />
+      ) : selectedTab === 'chat' ? (
+        lunaRoomState === 'intro' ? (
+          <LunaIntroScreen 
+            userData={userData} 
+            onEnterRoom={handleEnterLunaRoom}
+          />
+        ) : (
+          <LunaChatContent 
+            userData={userData} 
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: false }
+            )}
+            onBack={handleExitLunaRoom}
+          />
+        )
+      ) : null}
 
-        {/* Today's Horoscope Card - Large Prominent */}
-        <TouchableOpacity style={styles.mainHoroscopeCard} onPress={handleCardPress}>
-          <LinearGradient
-            colors={['rgba(255, 255, 255, 0.1)', 'rgba(139, 95, 191, 0.1)']}
-            style={styles.mainCardGradient}
-          >
-            <View style={styles.mainCardHeader}>
-              <View style={styles.zodiacHeader}>
-                <Text style={styles.zodiacSymbol}>{userData.zodiacSymbol}</Text>
-                <Text style={[styles.zodiacSign, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-                  {userData.zodiacSign}
-                </Text>
-              </View>
-              <View style={styles.cosmicRating}>
-                <Text style={styles.ratingText}>Today's cosmic energy:</Text>
-                <Text style={styles.stars}>
-                  {Array.from({ length: userData.cosmicRating }, (_, i) => '⭐').join('')}
-                  {Array.from({ length: 5 - userData.cosmicRating }, (_, i) => '☆').join('')}
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.fullHoroscopeText}>
-              Today brings powerful transformations and deep insights. The cosmic energies align to reveal hidden truths about your path forward. Trust your intuition as it guides you toward meaningful connections and unexpected opportunities.
-              {'\n\n'}
-              Your emotional depth serves you well today, allowing you to see beyond surface appearances. This is an excellent time for introspection and understanding your true desires. The universe is supporting your growth and evolution.
-              {'\n\n'}
-              In relationships, your natural magnetism draws others to you. Be authentic in your interactions, and you'll find that genuine connections form effortlessly. Your ability to read between the lines will prove invaluable in both personal and professional settings.
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* Horoscope Time Periods */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.timePeriodsContainer}
+      {/* Bottom Navigation - Pill Shape (hidden in Luna chat room) */}
+      {!(selectedTab === 'chat' && lunaRoomState === 'chat') && (
+        <Animated.View 
+          style={[
+            styles.bottomNavContainer,
+            {
+              opacity: navBarOpacity,
+              transform: [{ translateY: navBarTranslateY }]
+            }
+          ]}
         >
-          <TouchableOpacity style={[styles.timePeriodCard, styles.timePeriodInactive]} onPress={handleCardPress}>
-            <Text style={styles.timePeriodTitle}>Yesterday</Text>
-            <Text style={styles.timePeriodSubtitle}>For reflection</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.timePeriodCard, styles.timePeriodActive]} onPress={handleCardPress}>
-            <Text style={styles.timePeriodTitle}>Today</Text>
-            <Text style={styles.timePeriodSubtitle}>Current energy</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.timePeriodCard, styles.timePeriodInactive]} onPress={handleCardPress}>
-            <Text style={styles.timePeriodTitle}>Tomorrow</Text>
-            <Text style={styles.timePeriodSubtitle}>Preview</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.timePeriodCard, styles.timePeriodInactive]} onPress={handleCardPress}>
-            <Text style={styles.timePeriodTitle}>This Week</Text>
-            <Text style={styles.timePeriodSubtitle}>Overview</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.timePeriodCard, styles.timePeriodInactive]} onPress={handleCardPress}>
-            <Text style={styles.timePeriodTitle}>This Month</Text>
-            <Text style={styles.timePeriodSubtitle}>Major themes</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Detailed Horoscope Categories */}
-        <View style={styles.categoriesCard}>
-          <Text style={[styles.categoriesTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-            Today's Detailed Guidance
-          </Text>
-          <TouchableOpacity style={styles.categoryItem} onPress={handleCardPress}>
-            <Text style={styles.categoryIcon}>💕</Text>
-            <View style={styles.categoryContent}>
-              <Text style={styles.categoryTitle}>Love & Relationships</Text>
-              <Text style={styles.categoryText}>Your natural magnetism draws others to you today. Be authentic in your interactions.</Text>
-            </View>
-            <Text style={styles.categoryArrow}>→</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem} onPress={handleCardPress}>
-            <Text style={styles.categoryIcon}>💼</Text>
-            <View style={styles.categoryContent}>
-              <Text style={styles.categoryTitle}>Career & Money</Text>
-              <Text style={styles.categoryText}>Your ability to read between the lines proves invaluable in professional settings.</Text>
-            </View>
-            <Text style={styles.categoryArrow}>→</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem} onPress={handleCardPress}>
-            <Text style={styles.categoryIcon}>🏥</Text>
-            <View style={styles.categoryContent}>
-              <Text style={styles.categoryTitle}>Health & Wellness</Text>
-              <Text style={styles.categoryText}>Focus on emotional wellbeing through introspection and understanding your desires.</Text>
-            </View>
-            <Text style={styles.categoryArrow}>→</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.categoryItem} onPress={handleCardPress}>
-            <Text style={styles.categoryIcon}>📈</Text>
-            <View style={styles.categoryContent}>
-              <Text style={styles.categoryTitle}>Personal Growth</Text>
-              <Text style={styles.categoryText}>The universe is supporting your growth and evolution. Trust your intuition.</Text>
-            </View>
-            <Text style={styles.categoryArrow}>→</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Zodiac Insights Section */}
-        <View style={styles.zodiacInsightsCard}>
-          <Text style={[styles.zodiacInsightsTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-            Your Zodiac Profile
-          </Text>
-          <View style={styles.zodiacProfile}>
-            <View style={styles.zodiacProfileHeader}>
-              <Text style={styles.zodiacProfileSymbol}>{userData.zodiacSymbol}</Text>
-              <View style={styles.zodiacProfileInfo}>
-                <Text style={[styles.zodiacProfileSign, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-                  {userData.zodiacSign}
-                </Text>
-                <Text style={styles.zodiacProfileElement}>Water Sign • Fixed Quality</Text>
-              </View>
-            </View>
-            <Text style={styles.zodiacProfileDescription}>
-              Intense, passionate, and deeply intuitive. You possess remarkable emotional depth and the ability to transform yourself and others through your powerful presence.
-            </Text>
-          </View>
-          
-          <View style={styles.zodiacFeatures}>
-            <View style={styles.zodiacFeature}>
-              <Text style={styles.zodiacFeatureTitle}>Strengths</Text>
-              <Text style={styles.zodiacFeatureText}>Loyal, Resourceful, Brave, Passionate</Text>
-            </View>
-            <View style={styles.zodiacFeature}>
-              <Text style={styles.zodiacFeatureTitle}>Challenges</Text>
-              <Text style={styles.zodiacFeatureText}>Distrusting, Jealous, Secretive, Violent</Text>
-            </View>
-          </View>
-
-          <View style={styles.zodiacExtras}>
-            <View style={styles.zodiacExtra}>
-              <Text style={styles.zodiacExtraTitle}>Lucky Numbers</Text>
-              <Text style={styles.zodiacExtraText}>{userData.luckyNumbers.join(', ')}</Text>
-            </View>
-            <View style={styles.zodiacExtra}>
-              <Text style={styles.zodiacExtraTitle}>Compatible Signs</Text>
-              <Text style={styles.zodiacExtraText}>{userData.compatibleSigns.join(', ')}</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Reading History Section */}
-        <TouchableOpacity style={styles.historyCard} onPress={handleCardPress}>
-          <View style={styles.historyHeader}>
-            <Text style={[styles.historyTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-              Reading History
-            </Text>
-            <Text style={styles.historyViewAll}>View all →</Text>
-          </View>
-          <View style={styles.historyItem}>
-            <Text style={styles.historyIcon}>📖</Text>
-            <View style={styles.historyContent}>
-              <Text style={styles.historyItemTitle}>Today's Reading</Text>
-              <Text style={styles.historyTimestamp}>2 hours ago</Text>
-            </View>
-          </View>
-          <View style={styles.historyItem}>
-            <Text style={styles.historyIcon}>📖</Text>
-            <View style={styles.historyContent}>
-              <Text style={styles.historyItemTitle}>Yesterday's Guidance</Text>
-              <Text style={styles.historyTimestamp}>1 day ago</Text>
-            </View>
-          </View>
-          <View style={styles.historyItem}>
-            <Text style={styles.historyIcon}>📖</Text>
-            <View style={styles.historyContent}>
-              <Text style={styles.historyItemTitle}>Weekly Forecast</Text>
-              <Text style={styles.historyTimestamp}>3 days ago</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Premium Features Teaser (only for free users) */}
-        {!userData.isPremium && (
-          <TouchableOpacity style={styles.premiumCard} onPress={handleCardPress}>
-            <LinearGradient
-              colors={['rgba(255, 215, 0, 0.1)', 'rgba(255, 165, 0, 0.1)']}
-              style={styles.premiumGradient}
-            >
-              <Text style={[styles.premiumTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-                Unlock Your Full Cosmic Potential
-              </Text>
-              <Text style={styles.premiumFeatures}>
-                Unlimited horoscopes • AI chat • Compatibility reports
-              </Text>
-              <TouchableOpacity style={styles.premiumCTA}>
-                <LinearGradient
-                  colors={['#FFD700', '#FFA500']}
-                  style={styles.premiumCTAGradient}
-                >
-                  <Text style={styles.premiumCTAText}>Start Free Trial</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
-
-        {/* Bottom spacing for navigation */}
-        <View style={styles.bottomSpacing} />
-      </ScrollView>
-
-      {/* Bottom Navigation - Pill Shape */}
-      <View style={styles.bottomNavContainer}>
         <View style={styles.pillNavBar}>
           {/* Animated Background Indicator */}
           <Animated.View 
@@ -424,7 +324,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
               styles.navTitle,
               selectedTab === 'moon' && styles.navTitleActive
             ]}>
-              Moon Phases
+              Cosmos
             </Text>
           </TouchableOpacity>
           
@@ -449,7 +349,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
               styles.navTitle,
               selectedTab === 'compatibility' && styles.navTitleActive
             ]}>
-              Compatibility
+              Soulmate
             </Text>
           </TouchableOpacity>
           
@@ -478,7 +378,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
+      )}
     </View>
   );
 };
@@ -486,7 +387,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0A0E1A',
+    backgroundColor: AppColors.background,
   },
   starfield: {
     position: 'absolute',
@@ -509,13 +410,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: AppColors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
   },
   closeButtonText: {
-    color: 'white',
+    color: AppColors.onSurface,
     fontSize: 20,
     fontWeight: 'bold',
   },
@@ -525,14 +426,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 60,
-    paddingBottom: 20,
+    paddingBottom: 30,
   },
   headerLeft: {
     flex: 1,
   },
   pageTitle: {
     fontSize: 24,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 4,
   },
@@ -545,18 +446,18 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: AppColors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   settingsIcon: {
-    color: '#fff',
+    color: AppColors.onSurface,
     fontSize: 16,
     fontWeight: 'bold',
   },
   date: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
   },
   profileAvatar: {
     width: 50,
@@ -588,18 +489,26 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   streakText: {
-    color: '#FFD700',
+    color: AppColors.cosmicGold,
     fontSize: 14,
     fontWeight: '600',
   },
   mainHoroscopeCard: {
-    marginBottom: 20,
-    borderRadius: 16,
+    marginBottom: 30,
+    borderRadius: 20,
     overflow: 'hidden',
-    minHeight: 200,
+    minHeight: 180,
+    borderWidth: 1,
+    borderColor: AppColors.glassCardBorder,
+    backgroundColor: AppColors.glassCardBackground,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   mainCardGradient: {
-    padding: 20,
+    padding: 24,
   },
   mainCardHeader: {
     flexDirection: 'row',
@@ -622,7 +531,7 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
     marginBottom: 4,
   },
   stars: {
@@ -630,7 +539,7 @@ const styles = StyleSheet.create({
   },
   fullHoroscopeText: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: AppColors.textSecondary,
     lineHeight: 24,
   },
   cardHeader: {
@@ -641,7 +550,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     flex: 1,
   },
@@ -653,18 +562,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  zodiacSymbol: {
-    fontSize: 16,
-    marginRight: 4,
-  },
   zodiacText: {
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
   horoscopePreview: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: AppColors.textSecondary,
     lineHeight: 24,
     marginBottom: 16,
   },
@@ -676,7 +581,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   ctaText: {
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -684,52 +589,62 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   timePeriodCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 12,
     padding: 16,
     marginRight: 12,
     width: 100,
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    alignItems: 'center',
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   timePeriodActive: {
     backgroundColor: 'rgba(166, 108, 255, 0.2)',
     borderColor: 'rgba(166, 108, 255, 0.4)',
   },
   timePeriodInactive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.surface,
   },
   timePeriodTitle: {
-    color: '#fff',
+    color: AppColors.onSurface,
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 4,
   },
   timePeriodSubtitle: {
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: AppColors.textSecondary,
     fontSize: 10,
     textAlign: 'center',
   },
   categoriesCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
+    backgroundColor: AppColors.glassCardBackground,
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   categoriesTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 16,
   },
   categoryItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingVertical: 8,
+    marginBottom: 20,
+    paddingVertical: 16,
   },
   categoryIcon: {
     fontSize: 20,
@@ -740,31 +655,36 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 14,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '600',
     marginBottom: 4,
   },
   categoryText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
     lineHeight: 16,
   },
   categoryArrow: {
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontSize: 16,
     fontWeight: 'bold',
   },
   highlightsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   highlightsTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 16,
   },
@@ -782,21 +702,26 @@ const styles = StyleSheet.create({
   },
   highlightTitle: {
     fontSize: 14,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '600',
     marginBottom: 2,
   },
   highlightText: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
   },
   historyCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   historyHeader: {
     flexDirection: 'row',
@@ -806,11 +731,11 @@ const styles = StyleSheet.create({
   },
   historyTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
   },
   historyViewAll: {
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -828,25 +753,30 @@ const styles = StyleSheet.create({
   },
   historyItemTitle: {
     fontSize: 14,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '600',
     marginBottom: 2,
   },
   historyTimestamp: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: AppColors.textSecondary,
   },
   zodiacInsightsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   zodiacInsightsTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 16,
   },
@@ -873,11 +803,11 @@ const styles = StyleSheet.create({
   },
   zodiacProfileElement: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
   },
   zodiacProfileDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: AppColors.textSecondary,
     lineHeight: 20,
   },
   zodiacFeatures: {
@@ -890,13 +820,13 @@ const styles = StyleSheet.create({
   },
   zodiacFeatureTitle: {
     fontSize: 12,
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontWeight: '600',
     marginBottom: 4,
   },
   zodiacFeatureText: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
     lineHeight: 16,
   },
   zodiacExtras: {
@@ -908,22 +838,27 @@ const styles = StyleSheet.create({
   },
   zodiacExtraTitle: {
     fontSize: 12,
-    color: '#FFD700',
+    color: AppColors.cosmicGold,
     fontWeight: '600',
     marginBottom: 4,
   },
   zodiacExtraText: {
     fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
   },
   moonCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   moonVisual: {
     marginRight: 16,
@@ -932,7 +867,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: AppColors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -944,23 +879,23 @@ const styles = StyleSheet.create({
   },
   moonTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 4,
   },
   moonSign: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: AppColors.textSecondary,
     marginBottom: 8,
   },
   moonDescription: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: AppColors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
   moonCTA: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: AppColors.surface,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -975,14 +910,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   quickActionCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 12,
     padding: 16,
     marginRight: 12,
     width: 120,
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    alignItems: 'center',
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   quickActionIcon: {
     fontSize: 24,
@@ -995,16 +935,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   eventsCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: AppColors.glassCardBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.cardShadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 32,
+    elevation: 8,
   },
   eventsTitle: {
     fontSize: 18,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '700',
     marginBottom: 16,
   },
@@ -1022,13 +967,13 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 14,
-    color: '#fff',
+    color: AppColors.onSurface,
     fontWeight: '600',
     marginBottom: 2,
   },
   eventDate: {
     fontSize: 12,
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: AppColors.textSecondary,
   },
   eventsCTA: {
     backgroundColor: 'rgba(166, 108, 255, 0.2)',
@@ -1039,7 +984,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   eventsCTAText: {
-    color: '#A66CFF',
+    color: AppColors.secondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -1055,13 +1000,13 @@ const styles = StyleSheet.create({
   },
   premiumTitle: {
     fontSize: 18,
-    color: '#FFD700',
+    color: AppColors.cosmicGold,
     fontWeight: '700',
     marginBottom: 8,
   },
   premiumFeatures: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: AppColors.textSecondary,
     marginBottom: 16,
   },
   premiumCTA: {
@@ -1093,7 +1038,7 @@ const styles = StyleSheet.create({
   },
   pillNavBar: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(11, 11, 47, 0.95)',
     borderRadius: 25,
     padding: 4,
     width: '95%',
@@ -1102,7 +1047,12 @@ const styles = StyleSheet.create({
     height: 70,
     position: 'relative',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: AppColors.glassCardBorder,
+    shadowColor: AppColors.purpleGlow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   navIndicator: {
     position: 'absolute',
@@ -1110,16 +1060,16 @@ const styles = StyleSheet.create({
     left: 4,
     width: (width * 0.95 - 8) / 4, // 95% width minus pill padding, divided by 4 tabs
     height: 62,
-    backgroundColor: '#A66CFF',
+    backgroundColor: AppColors.cosmicGold,
     borderRadius: 21,
-    shadowColor: '#A66CFF',
+    shadowColor: AppColors.goldGlow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 8,
   },
   pillNavItem: {
     flex: 1,
@@ -1141,23 +1091,23 @@ const styles = StyleSheet.create({
     // Active state handled by the animated indicator
   },
   navIconImage: {
-    width: 22,
-    height: 22,
+    width: 26,
+    height: 26,
   },
   navIconImageActive: {
-    width: 22,
-    height: 22,
+    width: 26,
+    height: 26,
   },
   navTitle: {
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontWeight: '400',
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontFamily: 'Cinzel_400Regular',
     textAlign: 'center',
-    lineHeight: 12,
+    lineHeight: 13,
   },
   navTitleActive: {
-    color: '#fff',
-    fontWeight: '600',
+    color: '#000000',
+    fontFamily: 'Cinzel_700Bold',
   },
 });
 
