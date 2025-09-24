@@ -46,6 +46,7 @@ export const AppColors = {
 };
 
 export const Typography = {
+  // Cinzel - Primary Font (Mystical, Ancient, Headlines)
   display: {
     fontFamily: 'Cinzel_400Regular',
     fontSize: 36,
@@ -57,18 +58,77 @@ export const Typography = {
     color: AppColors.onBackground,
   },
   title: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Cinzel_500Medium',
+    fontSize: 20,
+    color: AppColors.onBackground,
+  },
+  zodiacTitle: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 18,
+    color: AppColors.cosmicGold,
+  },
+  sectionHeader: {
+    fontFamily: 'Cinzel_600SemiBold',
     fontSize: 16,
     color: AppColors.onBackground,
   },
+  
+  // SF Pro - Secondary Font (Body Text, UI Elements)
   body: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'System',
+    fontSize: 16,
+    color: AppColors.onBackground,
+  },
+  bodySecondary: {
+    fontFamily: 'System',
     fontSize: 14,
     color: AppColors.textSecondary,
   },
-  label: {
-    fontFamily: 'Inter_500Medium',
+  button: {
+    fontFamily: 'System',
+    fontSize: 16,
+    fontWeight: '600',
+    color: AppColors.onBackground,
+  },
+  input: {
+    fontFamily: 'System',
+    fontSize: 16,
+    color: AppColors.onBackground,
+  },
+  navigation: {
+    fontFamily: 'System',
     fontSize: 14,
+    fontWeight: '500',
+    color: AppColors.onBackground,
+  },
+  
+  // Avenir Next - Tertiary Font (Metadata, Captions)
+  caption: {
+    fontFamily: 'AvenirNext-Regular',
+    fontSize: 12,
+    color: AppColors.textTertiary,
+  },
+  metadata: {
+    fontFamily: 'AvenirNext-Medium',
+    fontSize: 13,
+    color: AppColors.textSecondary,
+  },
+  timestamp: {
+    fontFamily: 'AvenirNext-Regular',
+    fontSize: 11,
+    color: AppColors.textMuted,
+  },
+  dataLabel: {
+    fontFamily: 'AvenirNext-DemiBold',
+    fontSize: 12,
+    color: AppColors.onBackground,
+  },
+  
+  // Legacy support
+  label: {
+    fontFamily: 'System',
+    fontSize: 14,
+    fontWeight: '500',
     color: AppColors.onBackground,
   }
 };

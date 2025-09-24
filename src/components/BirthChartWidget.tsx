@@ -41,18 +41,18 @@ const BirthChartWidget: React.FC<BirthChartWidgetProps> = ({ planets, onPlanetPr
 
   // Zodiac sign to image mapping
   const zodiacSignImages = {
-    '♈': require('../../assets/aries.png'),
-    '♉': require('../../assets/taurus.png'),
-    '♊': require('../../assets/gemini.png'),
-    '♋': require('../../assets/cancer.png'),
-    '♌': require('../../assets/leo.png'),
-    '♍': require('../../assets/virgo.png'),
-    '♎': require('../../assets/libra.png'),
-    '♏': require('../../assets/scorpio.png'),
-    '♐': require('../../assets/sagittarius.png'),
-    '♑': require('../../assets/capricorn.png'),
-    '♒': require('../../assets/aquarius.png'),
-    '♓': require('../../assets/pisces.png'),
+    'Aries': require('../../assets/aries.png'),
+    'Taurus': require('../../assets/taurus.png'),
+    'Gemini': require('../../assets/gemini.png'),
+    'Cancer': require('../../assets/cancer.png'),
+    'Leo': require('../../assets/leo.png'),
+    'Virgo': require('../../assets/virgo.png'),
+    'Libra': require('../../assets/libra.png'),
+    'Scorpio': require('../../assets/scorpio.png'),
+    'Sagittarius': require('../../assets/sagittarius.png'),
+    'Capricorn': require('../../assets/capricorn.png'),
+    'Aquarius': require('../../assets/aquarius.png'),
+    'Pisces': require('../../assets/pisces.png'),
   };
 
   const chartSize = 200;
@@ -61,8 +61,8 @@ const BirthChartWidget: React.FC<BirthChartWidgetProps> = ({ planets, onPlanetPr
   const radius = 80;
 
   const zodiacSigns = [
-    '♈', '♉', '♊', '♋', '♌', '♍', 
-    '♎', '♏', '♐', '♑', '♒', '♓'
+    'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 
+    'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'
   ];
 
   const houseNumbers = [

@@ -28,6 +28,7 @@ const IOS17SegmentedControl: React.FC<IOS17SegmentedControlProps> = ({
 }) => {
   const [containerWidth, setContainerWidth] = useState(0);
   const indicatorAnim = useRef(new Animated.Value(0)).current;
+  const EDGE_INSET = 6; // horizontal inset so indicator doesn't touch edges
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -40,7 +41,7 @@ const IOS17SegmentedControl: React.FC<IOS17SegmentedControlProps> = ({
 
   useEffect(() => {
     if (containerWidth > 0) {
-      const segmentWidth = containerWidth / segments.length;
+      const segmentWidth = (containerWidth - EDGE_INSET * 2) / segments.length;
       Animated.spring(indicatorAnim, {
         toValue: selectedIndex * segmentWidth,
         useNativeDriver: false,
@@ -80,7 +81,8 @@ const IOS17SegmentedControl: React.FC<IOS17SegmentedControlProps> = ({
             style={[
               styles.selectionIndicator,
               {
-                width: containerWidth / segments.length,
+                left: EDGE_INSET,
+                width: (containerWidth - EDGE_INSET * 2) / segments.length,
                 transform: [{ translateX: indicatorAnim }],
               },
             ]}
@@ -93,7 +95,7 @@ const IOS17SegmentedControl: React.FC<IOS17SegmentedControlProps> = ({
             key={index}
             style={[
               styles.segment,
-              { width: containerWidth / segments.length },
+              { width: (containerWidth - EDGE_INSET * 2) / segments.length },
             ]}
             onPress={() => handleSegmentPress(index, segment)}
             activeOpacity={0.7}
@@ -116,15 +118,19 @@ const IOS17SegmentedControl: React.FC<IOS17SegmentedControlProps> = ({
 const styles = StyleSheet.create({
   container: {
     marginHorizontal: iOS17Theme.spacing.md,
-    marginBottom: iOS17Theme.spacing.lg,
+    marginBottom: iOS17Theme.spacing.sm,
   },
   segmentedControl: {
-    height: 32,
-    backgroundColor: iOS17Theme.colors.systemFill,
-    borderRadius: iOS17Theme.cornerRadius.medium,
+    height: 36,
+    backgroundColor: iOS17Theme.colors.secondarySystemFill,
+    borderRadius: iOS17Theme.cornerRadius.large,
     flexDirection: 'row',
     position: 'relative',
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: iOS17Theme.colors.separator,
+    ...iOS17Theme.shadows.small,
+    paddingHorizontal: 6,
   },
   background: {
     position: 'absolute',
@@ -132,31 +138,37 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: iOS17Theme.colors.systemFill,
-    borderRadius: iOS17Theme.cornerRadius.medium,
+    backgroundColor: iOS17Theme.colors.secondarySystemFill,
+    borderRadius: iOS17Theme.cornerRadius.large,
   },
   selectionIndicator: {
     position: 'absolute',
-    top: 2,
-    bottom: 2,
-    backgroundColor: iOS17Theme.colors.systemBackground,
-    borderRadius: iOS17Theme.cornerRadius.small,
-    ...iOS17Theme.shadows.small,
+    top: 3,
+    bottom: 3,
+    backgroundColor: iOS17Theme.colors.systemBlue,
+    borderRadius: iOS17Theme.cornerRadius.large - 3,
+    ...iOS17Theme.shadows.medium,
+    borderWidth: 1,
+    borderColor: iOS17Theme.colors.systemBlue,
   },
   segment: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
+    paddingVertical: iOS17Theme.spacing.sm,
   },
   segmentText: {
     ...iOS17Theme.typography.callout,
     color: iOS17Theme.colors.secondaryLabel,
     fontWeight: '500',
+    fontSize: 14,
+    textAlign: 'center',
   },
   segmentTextSelected: {
-    color: iOS17Theme.colors.label,
+    color: '#FFFFFF',
     fontWeight: '600',
+    fontSize: 14,
   },
 });
 

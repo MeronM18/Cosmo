@@ -43,12 +43,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
   const userData = {
     name: "Sarah",
     zodiacSign: "Scorpio",
-    zodiacSymbol: "♏",
+    zodiacSymbol: "Scorpio",
     isPremium: false,
     readingStreak: 7,
     cosmicRating: 4,
     luckyNumbers: [7, 14, 23, 31],
     compatibleSigns: ["Cancer", "Pisces", "Capricorn"]
+  };
+
+  // LunaContent compatible user data
+  const lunaUserData = {
+    name: "Sarah",
+    zodiacSign: "Scorpio",
+    birthDate: new Date('1990-11-15'),
+    birthTime: new Date('1990-11-15T14:30:00'),
+    birthLocation: "New York, NY",
+    subscriptionLevel: userData.isPremium ? 'premium' as const : 'free' as const
   };
 
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -215,7 +225,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
           )}
         />
       ) : selectedTab === 'moon' ? (
-        <LunaContent userData={userData} />
+        <LunaContent 
+          userData={lunaUserData} 
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+          )}
+        />
       ) : selectedTab === 'chat' ? (
         lunaRoomState === 'intro' ? (
           <LunaIntroScreen 
@@ -545,10 +561,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  zodiacSymbol: {
-    fontSize: 16,
-    marginRight: 4,
   },
   zodiacText: {
     color: AppColors.secondary,

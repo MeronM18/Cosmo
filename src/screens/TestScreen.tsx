@@ -13,6 +13,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { AuthService } from '../services/auth';
 import { AstronomicalService } from '../services/astronomicalService';
 import { AstronomicalAPIs } from '../services/astronomicalAPIs';
+import { CelestialEventsService } from '../services/celestialEventsService';
 
 interface TestScreenProps {
   onNavigateToChat?: () => void;
@@ -24,10 +25,7 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAppleAvailable, setIsAppleAvailable] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number }>({
-    latitude: 42.3314, // Detroit fallback
-    longitude: -83.0458,
-  });
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     checkAppleAuth();
@@ -50,21 +48,91 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
     }
   };
 
-  // GPS-based geolocation via Expo Location
+  // GPS-based geolocation via Expo Location with enhanced debugging
   const resolveUserLocation = async () => {
     try {
+      addResult('🌍 Requesting location permission...');
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        addResult('Location permission denied. Using Detroit fallback.');
+        addResult('❌ Location permission denied. Cannot detect location.');
         return;
       }
 
-      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const coords = position.coords;
-      setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
-      addResult(`Location detected (GPS): (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`);
+      // Check location services
+      const isEnabled = await Location.hasServicesEnabledAsync();
+      addResult(`📱 Location services enabled: ${isEnabled}`);
+      
+      if (!isEnabled) {
+        addResult('❌ Location services are disabled on this device');
+        return;
+      }
+
+      // Try multiple accuracy levels
+      const attempts = [
+        { name: 'High Accuracy GPS', accuracy: Location.Accuracy.BestForNavigation, timeout: 30000 },
+        { name: 'Balanced GPS', accuracy: Location.Accuracy.Balanced, timeout: 20000 },
+        { name: 'Low Accuracy', accuracy: Location.Accuracy.Lowest, timeout: 15000 }
+      ];
+
+      for (let i = 0; i < attempts.length; i++) {
+        const attempt = attempts[i];
+        addResult(`📍 Attempt ${i + 1}/3: ${attempt.name}...`);
+        
+        try {
+          const position = await Location.getCurrentPositionAsync({ 
+            accuracy: attempt.accuracy,
+            maximumAge: 5000
+          });
+          
+          const coords = position.coords;
+          addResult(`🎯 GPS coordinates received: lat=${coords.latitude.toFixed(6)}, lng=${coords.longitude.toFixed(6)}, accuracy=${coords.accuracy}, timestamp=${new Date(position.timestamp).toISOString()}`);
+          
+          // Check if coordinates are in Detroit area
+          const inDetroit = (coords.latitude >= 42.0 && coords.latitude <= 42.6 && 
+                           coords.longitude >= -83.5 && coords.longitude <= -82.5);
+          
+          addResult(`🗺️ In Detroit area: ${inDetroit ? 'YES' : 'NO'}`);
+          
+          if (!inDetroit && i === 0) {
+            addResult('⚠️ Coordinates not in Detroit area, trying higher accuracy...');
+            continue;
+          }
+          
+          setUserLocation({ latitude: coords.latitude, longitude: coords.longitude });
+          addResult(`✅ Location set: (${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)})`);
+          
+          // Try to get city name
+          try {
+            const reverseGeocode = await Location.reverseGeocodeAsync({
+              latitude: coords.latitude,
+              longitude: coords.longitude,
+            });
+            
+            if (reverseGeocode.length > 0) {
+              const address = reverseGeocode[0];
+              const city = address.city || address.subregion || address.region;
+              if (city) {
+                addResult(`🏙️ Detected city: ${city}, ${address.country || 'Unknown Country'}`);
+              }
+            }
+          } catch (geocodeError) {
+            addResult('⚠️ Could not determine city name from coordinates');
+          }
+          
+          return; // Success, exit function
+          
+        } catch (attemptError: any) {
+          addResult(`💥 Attempt ${i + 1} failed: ${attemptError?.message || attemptError}`);
+          if (i < attempts.length - 1) {
+            addResult('🔄 Trying next attempt...');
+          }
+        }
+      }
+      
+      addResult('💥 All location attempts failed');
+      
     } catch (e: any) {
-      addResult(`GPS location failed, using fallback: ${e?.message || e}`);
+      addResult(`💥 GPS location failed: ${e?.message || e}`);
     }
   };
 
@@ -83,7 +151,7 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
     try {
       addResult('Starting Google Sign In...');
       const result = await AuthService.signInWithGoogle();
-      addResult(`Google Sign In Initiated: ${JSON.stringify(result?.url ? 'URL Generated' : 'No URL')}`);
+      addResult(`Google Sign In Initiated: ${JSON.stringify(result ? 'Success' : 'No Result')}`);
     } catch (error: any) {
       addResult(`Google Sign In Error: ${error.message}`);
     }
@@ -461,6 +529,61 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
     }
   };
 
+  const testCelestialEvents = async () => {
+    try {
+      setLoading(true);
+      addResult('Testing Celestial Events Service...');
+      addResult('Loading hardcoded 2025-2026 astronomical events...');
+      
+      // Test the celestial events service
+      const events = await CelestialEventsService.getUpcomingEvents(365);
+      
+      if (events && events.length > 0) {
+        addResult(`✅ Found ${events.length} upcoming celestial events for 2025-2026:`);
+        
+        events.slice(0, 8).forEach((event, index) => {
+          const daysUntil = Math.ceil((event.startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+          const eventIcon = event.type === 'eclipse' ? '🌙' : 
+                           event.type === 'meteor_shower' ? '☄️' : 
+                           event.type === 'supermoon' ? '🌕' : 
+                           event.type === 'seasonal' ? '🌸' : '🌕';
+          addResult(`${eventIcon} ${event.name} (${event.type}) - ${daysUntil} days away`);
+        });
+        
+        if (events.length > 8) {
+          addResult(`... and ${events.length - 8} more events`);
+        }
+        
+        // Show event types breakdown
+        const eventTypes = events.reduce((acc, event) => {
+          acc[event.type] = (acc[event.type] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        addResult('\n📊 Event Types:');
+        Object.entries(eventTypes).forEach(([type, count]) => {
+          addResult(`  ${type}: ${count} events`);
+        });
+        
+        // Test the service test function
+        const testResult = await CelestialEventsService.testService();
+        if (testResult.success) {
+          addResult(`\n✅ Service test passed: ${testResult.eventCount} events loaded`);
+        } else {
+          addResult(`\n⚠️ Service test failed: ${testResult.error}`);
+        }
+        
+      } else {
+        addResult('❌ No celestial events found');
+      }
+      
+    } catch (error: any) {
+      addResult(`❌ Celestial Events Test Error: ${error?.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const testDirectAPICalls = async () => {
     try {
       setLoading(true);
@@ -707,6 +830,14 @@ export default function TestScreen({ onNavigateToChat, onOpenPreviewHub }: TestS
           disabled={loading}
         >
           <Text style={styles.buttonText}>Generate Chart</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.button, { backgroundColor: '#8A4FFF' }]} 
+          onPress={testCelestialEvents}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>Celestial Events</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 

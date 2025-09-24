@@ -99,7 +99,7 @@ class _CosmicBackgroundWidgetState extends State<CosmicBackgroundWidget>
             child: Opacity(
               opacity: 0.1,
               child: Text(
-                '♈',
+                'Aries',
                 style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(
                   fontSize: 40.sp,
                   color: AppTheme.textSecondary,
@@ -114,7 +114,7 @@ class _CosmicBackgroundWidgetState extends State<CosmicBackgroundWidget>
             child: Opacity(
               opacity: 0.08,
               child: Text(
-                '♌',
+                'Leo',
                 style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(
                   fontSize: 35.sp,
                   color: AppTheme.textSecondary,
@@ -129,7 +129,7 @@ class _CosmicBackgroundWidgetState extends State<CosmicBackgroundWidget>
             child: Opacity(
               opacity: 0.06,
               child: Text(
-                '♓',
+                'Pisces',
                 style: AppTheme.lightTheme.textTheme.displayLarge?.copyWith(
                   fontSize: 30.sp,
                   color: AppTheme.textSecondary,

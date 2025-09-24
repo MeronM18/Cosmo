@@ -23,7 +23,6 @@ import PlanetaryChart from './PlanetaryChart';
 import CosmicJourney from './CosmicJourney';
 import ReadingHistory from './ReadingHistory';
 import IOS17HoroscopesContent from './ios17/IOS17HoroscopesContent';
-import IOS17TestComponent from './ios17/IOS17TestComponent';
 import { horoscopesStateManager, HoroscopesState, HoroscopeData, CompletedReading } from '../services/horoscopesState';
 import { HoroscopesAPI, APIError, isSameDay } from '../services/horoscopesAPI';
 import { StreakManager, MoodTracker, AchievementManager } from '../services/trackingService';
@@ -37,7 +36,6 @@ interface HoroscopesContentProps {
   userData: {
     name: string;
     zodiacSign: string;
-    zodiacSymbol: string;
     isPremium: boolean;
     readingStreak: number;
     cosmicRating: number;
@@ -561,7 +559,13 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
   // Use iOS 17 design if enabled
   if (useIOS17Design) {
     return (
-      <IOS17TestComponent />
+      <IOS17HoroscopesContent 
+        userData={{
+          ...userData,
+          zodiacSymbol: userData.zodiacSign // Use zodiac sign name as symbol since emojis were removed
+        }}
+        onScroll={onScroll}
+      />
     );
   }
 
@@ -626,7 +630,6 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
             Horoscopes
           </Text>
           <View style={styles.zodiacBadge}>
-            <Text style={styles.zodiacSymbol}>{userData.zodiacSymbol}</Text>
             <Text style={[styles.zodiacText, fontsLoaded ? { fontFamily: 'Cinzel_400Regular' } : { fontFamily: 'System' }]}>
               {userData.zodiacSign}
             </Text>
@@ -650,7 +653,6 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
         >
           <View style={styles.heroHeader}>
             <View style={styles.zodiacHeader}>
-              <Text style={styles.zodiacSymbolLarge}>{userData.zodiacSymbol}</Text>
               <Text style={[styles.zodiacSignLarge, fontsLoaded ? { fontFamily: 'Cinzel_700Bold' } : { fontFamily: 'System' }]}>
                 {userData.zodiacSign}
               </Text>
@@ -917,10 +919,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignSelf: 'flex-start',
   },
-  zodiacSymbol: {
-    fontSize: 16,
-    marginRight: 6,
-  },
   zodiacText: {
     color: '#B8A9C9',
     fontSize: 14,
@@ -947,10 +945,6 @@ const styles = StyleSheet.create({
   zodiacHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  zodiacSymbolLarge: {
-    fontSize: 24,
-    marginRight: 8,
   },
   zodiacSignLarge: {
     fontSize: 24,

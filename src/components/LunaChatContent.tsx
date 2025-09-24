@@ -30,7 +30,6 @@ interface LunaChatContentProps {
   userData: {
     name: string;
     zodiacSign: string;
-    zodiacSymbol: string;
     isPremium: boolean;
     readingStreak?: number;
     cosmicRating?: number;

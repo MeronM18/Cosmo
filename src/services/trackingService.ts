@@ -13,59 +13,36 @@ export interface Achievement {
 }
 
 export const ACHIEVEMENTS: Achievement[] = [
+  // Simplified achievement system - only 3 core achievements
   {
-    id: 'week_warrior',
-    title: 'Week Warrior',
-    description: 'Read your horoscope for 7 consecutive days',
-    icon: '🔥',
-    requirement: 7,
-    type: 'streak'
-  },
-  {
-    id: 'cosmic_consistent',
-    title: 'Cosmic Consistent',
-    description: 'Read your horoscope for 30 consecutive days',
-    icon: '⭐',
-    requirement: 30,
-    type: 'streak'
-  },
-  {
-    id: 'stellar_student',
-    title: 'Stellar Student',
-    description: 'Read your horoscope for 100 consecutive days',
-    icon: '👑',
-    requirement: 100,
-    type: 'streak'
-  },
-  {
-    id: 'mood_tracker',
-    title: 'Mood Tracker',
-    description: 'Track your mood for 7 days',
-    icon: '😊',
-    requirement: 7,
-    type: 'mood'
-  },
-  {
-    id: 'insight_seeker',
-    title: 'Insight Seeker',
-    description: 'Read 50 horoscopes',
-    icon: '🔮',
-    requirement: 50,
+    id: 'cosmic_beginner',
+    title: 'Cosmic Explorer',
+    description: 'Started your cosmic journey',
+    icon: '🌟',
+    requirement: 1,
     type: 'reading'
   },
   {
-    id: 'premium_explorer',
-    title: 'Premium Explorer',
-    description: 'Upgrade to premium',
-    icon: '💎',
-    requirement: 1,
-    type: 'premium'
+    id: 'cosmic_regular',
+    title: 'Regular Explorer',
+    description: 'Read horoscopes for a week',
+    icon: '🌙',
+    requirement: 7,
+    type: 'reading'
+  },
+  {
+    id: 'cosmic_wise',
+    title: 'Cosmic Sage',
+    description: 'Read horoscopes for a month',
+    icon: '👑',
+    requirement: 30,
+    type: 'reading'
   }
 ];
 
 // Streak management
 export class StreakManager {
-  static async updateStreak(userId: string): Promise<{ streak: number; newAchievements: Achievement[] }> {
+  static async updateStreak(userId: string, gracePeriodDays: number = 2): Promise<{ streak: number; newAchievements: Achievement[] }> {
     try {
       const today = new Date();
       const trackingData = await this.getTrackingData(userId);
@@ -76,7 +53,8 @@ export class StreakManager {
           readingStreak: 1,
           lastReadDate: today,
           moodCorrelations: [],
-          achievements: []
+          achievements: [],
+          completedReadings: []
         };
         await this.saveTrackingData(userId, newTracking);
         return { streak: 1, newAchievements: [] };
@@ -95,8 +73,15 @@ export class StreakManager {
         // Extend streak
         newStreak += 1;
       } else {
-        // Reset streak
-        newStreak = 1;
+        // Check if within grace period
+        const daysSinceLastRead = Math.floor((today.getTime() - lastRead.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceLastRead <= gracePeriodDays) {
+          // Within grace period - extend streak
+          newStreak += 1;
+        } else {
+          // Beyond grace period - reset streak
+          newStreak = 1;
+        }
       }
 
       // Update tracking data
@@ -118,7 +103,28 @@ export class StreakManager {
     }
   }
 
-  static async getCurrentStreak(userId: string): Promise<number> {
+  static async getCurrentStreak(userId: string, gracePeriodDays: number = 2): Promise<number> {
+    try {
+      const trackingData = await this.getTrackingData(userId);
+      if (!trackingData) return 0;
+      
+      const today = new Date();
+      const lastRead = new Date(trackingData.lastReadDate);
+      const daysSinceLastRead = Math.floor((today.getTime() - lastRead.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // If beyond grace period, streak is effectively 0
+      if (daysSinceLastRead > gracePeriodDays) {
+        return 0;
+      }
+      
+      return trackingData.readingStreak;
+    } catch (error) {
+      console.error('Error getting current streak:', error);
+      return 0;
+    }
+  }
+
+  static async getCurrentStreakLegacy(userId: string): Promise<number> {
     try {
       const trackingData = await this.getTrackingData(userId);
       return trackingData?.readingStreak || 0;

@@ -19,7 +19,6 @@ interface LunaIntroScreenProps {
   userData: {
     name: string;
     zodiacSign: string;
-    zodiacSymbol: string;
     isPremium: boolean;
   };
   onEnterRoom: () => void;

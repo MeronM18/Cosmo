@@ -25,7 +25,6 @@ interface SoulmateContentProps {
   userData: {
     name: string;
     zodiacSign: string;
-    zodiacSymbol: string;
     isPremium: boolean;
     readingStreak: number;
     cosmicRating: number;
@@ -639,7 +638,7 @@ const SoulmateContent: React.FC<SoulmateContentProps> = ({ userData, onScroll })
                 <Text style={styles.inputLabel}>You</Text>
                 <View style={styles.userInfo}>
                   <Text style={styles.userName}>{userData.name}</Text>
-                  <Text style={styles.userSign}>{userData.zodiacSign} {userData.zodiacSymbol}</Text>
+                  <Text style={styles.userSign}>{userData.zodiacSign}</Text>
                 </View>
               </View>
               
