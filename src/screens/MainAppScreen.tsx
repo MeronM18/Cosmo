@@ -11,9 +11,10 @@ import type { UserProfile } from '../types';
 
 interface MainAppScreenProps {
   onNavigateToChat?: () => void;
+  onAccountDeleted?: () => void;
 }
 
-export default function MainAppScreen({ onNavigateToChat }: MainAppScreenProps) {
+export default function MainAppScreen({ onNavigateToChat, onAccountDeleted }: MainAppScreenProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -88,9 +89,33 @@ export default function MainAppScreen({ onNavigateToChat }: MainAppScreenProps) 
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-        <Text style={styles.signOutButtonText}>Sign Out</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+          <Text style={styles.signOutButtonText}>Sign Out</Text>
+        </TouchableOpacity>
+        
+        {onAccountDeleted && (
+          <TouchableOpacity 
+            style={styles.deleteAccountButton} 
+            onPress={() => {
+              Alert.alert(
+                'Delete Account',
+                'This will permanently delete your account and all data. Are you sure?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { 
+                    text: 'Delete', 
+                    style: 'destructive',
+                    onPress: onAccountDeleted
+                  }
+                ]
+              );
+            }}
+          >
+            <Text style={styles.deleteAccountButtonText}>Delete Account</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -174,14 +199,30 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
+  buttonContainer: {
+    marginTop: 20,
+    gap: 12,
+  },
   signOutButton: {
     backgroundColor: '#dc3545',
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
-    marginTop: 20,
   },
   signOutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteAccountButton: {
+    backgroundColor: '#dc2626',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#dc2626',
+  },
+  deleteAccountButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

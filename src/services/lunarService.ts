@@ -25,6 +25,33 @@ export interface LunarEnergy {
   level: number;
   mood: string;
   recommendation: string;
+  doToday: string;
+  avoidToday: string;
+  meditationFocus: string;
+  ritualSuggestion: string;
+  ritualGuidance: {
+    primary: {
+      title: string;
+      icon: string;
+      color: string;
+      steps: string[];
+      description: string;
+    };
+    secondary: {
+      title: string;
+      icon: string;
+      color: string;
+      steps: string[];
+      description: string;
+    };
+    tertiary: {
+      title: string;
+      icon: string;
+      color: string;
+      steps: string[];
+      description: string;
+    };
+  };
 }
 
 export interface UserLocation {
@@ -258,58 +285,227 @@ class LunarService {
     let level: number;
     let mood: string;
     let recommendation: string;
+    let doToday: string;
+    let avoidToday: string;
+    let meditationFocus: string;
+    let ritualSuggestion: string;
+    let ritualGuidance: any;
 
     switch (phase) {
       case 'New Moon':
         level = 3.0;
         mood = 'Introspective';
         recommendation = 'Perfect time for new beginnings and setting intentions.';
+        doToday = 'Write in a journal';
+        avoidToday = 'Making big decisions';
+        meditationFocus = 'New beginnings';
+        ritualSuggestion = 'Light a candle';
+        ritualGuidance = {
+          primary: {
+            title: 'Intention Setting',
+            icon: '🕯️',
+            color: '#2F2F2F',
+            steps: [
+              'Light a white candle in a quiet space',
+              'Write down 3 intentions for the lunar cycle',
+              'Speak each intention aloud with conviction',
+              'Visualize your intentions manifesting',
+              'Blow out the candle and seal your intentions'
+            ],
+            description: 'Set powerful intentions during the dark moon for maximum manifestation potential.'
+          },
+          secondary: {
+            title: 'Vision Board Creation',
+            icon: '🎯',
+            color: '#4A4A4A',
+            steps: [
+              'Gather magazines, images, and art supplies',
+              'Create a visual representation of your goals',
+              'Include words and phrases that inspire you',
+              'Place in a prominent location for daily viewing',
+              'Update monthly with new aspirations'
+            ],
+            description: 'Create a visual roadmap for your dreams and aspirations.'
+          },
+          tertiary: {
+            title: 'New Moon Bath',
+            icon: '🛁',
+            color: '#6B6B6B',
+            steps: [
+              'Draw a warm bath with Epsom salts',
+              'Add a few drops of lavender essential oil',
+              'Light candles around the bathroom',
+              'Soak for 20-30 minutes in silence',
+              'Visualize washing away old patterns'
+            ],
+            description: 'Cleanse your energy and prepare for new beginnings.'
+          }
+        };
         break;
       case 'Waxing Crescent':
         level = 4.5;
         mood = 'Hopeful';
         recommendation = 'Focus on growth and taking action toward your goals.';
+        doToday = 'Take a walk outside';
+        avoidToday = 'Overwhelming yourself';
+        meditationFocus = 'Growth & progress';
+        ritualSuggestion = 'Plant something';
         break;
       case 'First Quarter':
         level = 6.0;
         mood = 'Determined';
         recommendation = 'Push through challenges and make important decisions.';
+        doToday = 'Exercise or run';
+        avoidToday = 'Procrastinating';
+        meditationFocus = 'Strength & courage';
+        ritualSuggestion = 'Make a decision';
         break;
       case 'Waxing Gibbous':
         level = 7.5;
         mood = 'Motivated';
         recommendation = 'Refine your plans and stay committed to your path.';
+        doToday = 'Work on your goals';
+        avoidToday = 'Being too critical';
+        meditationFocus = 'Commitment';
+        ritualSuggestion = 'Review your plans';
         break;
       case 'Full Moon':
         level = 9.0;
         mood = 'Powerful';
         recommendation = 'Harness the peak energy for manifestation and release.';
+        doToday = 'Run into the sun';
+        avoidToday = 'Emotional overwhelm';
+        meditationFocus = 'Peak energy';
+        ritualSuggestion = 'Full moon ritual';
+        ritualGuidance = {
+          primary: {
+            title: 'Full Moon Release',
+            icon: '🌕',
+            color: '#F5F5DC',
+            steps: [
+              'Write down what you want to release',
+              'Light a fire or candle safely',
+              'Burn the paper while stating your release',
+              'Watch the smoke carry away your burdens',
+              'Express gratitude for the lessons learned'
+            ],
+            description: 'Release what no longer serves you under the powerful full moon energy.'
+          },
+          secondary: {
+            title: 'Crystal Charging',
+            icon: '💎',
+            color: '#FFD700',
+            steps: [
+              'Cleanse crystals with sage or salt water',
+              'Arrange in a circle under moonlight',
+              'Leave overnight for maximum charging',
+              'Retrieve at sunrise for balanced energy',
+              'Set intentions for each crystal'
+            ],
+            description: 'Charge your crystals with powerful lunar energy during peak illumination.'
+          },
+          tertiary: {
+            title: 'Moon Water Creation',
+            icon: '🌊',
+            color: '#4FC3F7',
+            steps: [
+              'Fill a clear glass jar with filtered water',
+              'Place under moonlight for 3-4 hours',
+              'Set intention for healing and purification',
+              'Store in refrigerator and use within 3 days',
+              'Use for drinking, bathing, or plant watering'
+            ],
+            description: 'Create charged moon water for healing and spiritual cleansing.'
+          }
+        };
         break;
       case 'Waning Gibbous':
         level = 7.0;
         mood = 'Reflective';
         recommendation = 'Perfect time for introspection and releasing what no longer serves you.';
+        doToday = 'Clean your space';
+        avoidToday = 'Holding onto the past';
+        meditationFocus = 'Letting go';
+        ritualSuggestion = 'Release ceremony';
         break;
       case 'Last Quarter':
         level = 5.0;
         mood = 'Releasing';
         recommendation = 'Let go of what no longer serves and prepare for renewal.';
+        doToday = 'Complete unfinished tasks';
+        avoidToday = 'Starting new projects';
+        meditationFocus = 'Completion';
+        ritualSuggestion = 'Cleansing ritual';
         break;
       case 'Waning Crescent':
         level = 3.5;
         mood = 'Restful';
         recommendation = 'Rest, recharge, and prepare for the new cycle ahead.';
+        doToday = 'Take a nap';
+        avoidToday = 'Overexertion';
+        meditationFocus = 'Rest & renewal';
+        ritualSuggestion = 'Take a bath';
         break;
       default:
         level = 5.0;
         mood = 'Balanced';
         recommendation = 'Stay centered and trust the natural flow of lunar energy.';
+        doToday = 'Stay centered';
+        avoidToday = 'Extreme actions';
+        meditationFocus = 'Balance';
+        ritualSuggestion = 'Centering practice';
+        ritualGuidance = {
+          primary: {
+            title: 'Lunar Meditation',
+            icon: '🧘‍♀️',
+            color: '#8A4FFF',
+            steps: [
+              'Find a quiet space with moonlight visibility',
+              'Light a white or silver candle',
+              'Focus on your breath for 5 minutes',
+              'Visualize lunar energy filling your body',
+              'Set intentions for the lunar cycle'
+            ],
+            description: 'Connect with lunar energy through guided meditation and intention setting.'
+          },
+          secondary: {
+            title: 'Moon Gazing',
+            icon: '🌙',
+            color: '#4FC3F7',
+            steps: [
+              'Find a comfortable spot with clear moon view',
+              'Sit or lie down and relax your body',
+              'Gaze softly at the moon for 10-15 minutes',
+              'Notice any thoughts or feelings that arise',
+              'Express gratitude for the lunar energy'
+            ],
+            description: 'Simple practice of connecting with lunar energy through mindful observation.'
+          },
+          tertiary: {
+            title: 'Lunar Journaling',
+            icon: '📝',
+            color: '#6B6B6B',
+            steps: [
+              'Write the current moon phase and date',
+              'Reflect on your current emotional state',
+              'Note any patterns or insights',
+              'Set intentions for the coming days',
+              'Express gratitude for lunar guidance'
+            ],
+            description: 'Track your lunar journey and emotional patterns through regular journaling.'
+          }
+        };
     }
 
     return {
       level: Math.round(level * 10) / 10,
       mood,
       recommendation,
+      doToday,
+      avoidToday,
+      meditationFocus,
+      ritualSuggestion,
+      ritualGuidance,
     };
   }
 

@@ -74,7 +74,23 @@ const LunaIntroScreen: React.FC<LunaIntroScreenProps> = ({ userData, onEnterRoom
 
   const handleEnterRoom = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    onEnterRoom();
+    
+    // Smooth exit animation
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.8,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Call onEnterRoom after animation completes
+      onEnterRoom();
+    });
   };
 
 
@@ -126,7 +142,7 @@ const LunaIntroScreen: React.FC<LunaIntroScreenProps> = ({ userData, onEnterRoom
             </Text>
             
             <Text style={styles.descriptionText}>
-              I am Luna, your cosmic guide. Step into my chamber for wisdom and guidance.
+              I am Luna, your personal astrologer. Step into my chamber for wisdom and guidance.
             </Text>
           </View>
 
@@ -186,13 +202,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: 40,
-    paddingTop: 160,
+    paddingTop: 120,
   },
 
   // Text Styles
   textContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
   },
   welcomeTitle: {
     fontSize: 24,

@@ -362,16 +362,9 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
           </Text>
 
           <View style={styles.zodiacPosition}>
-            <View style={styles.zodiacContainer}>
-              <Text style={styles.zodiacText}>
-                Moon in {currentMoonPhase.zodiacPosition}
-              </Text>
-              <Image 
-                source={zodiacSignImages[currentMoonPhase.zodiacSymbol as keyof typeof zodiacSignImages]} 
-                style={styles.zodiacImage}
-                resizeMode="contain"
-              />
-            </View>
+            <Text style={styles.zodiacText}>
+              Moon in {currentMoonPhase.zodiacPosition}
+            </Text>
             <Text style={styles.elementText}>
               {currentMoonPhase.element} Element
             </Text>
@@ -448,6 +441,9 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
         </Text>
         
         <View style={styles.energyGaugeContainer}>
+          <View style={styles.energyGaugeHeader}>
+            <Text style={styles.energyLevel}>{lunarEnergy.level}/10</Text>
+          </View>
           <View style={styles.energyGauge}>
             <View style={styles.gaugeBackground} />
             <View 
@@ -460,7 +456,6 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
                 }
               ]} 
             />
-            <Text style={styles.energyLevel}>{lunarEnergy.level}/10</Text>
           </View>
           <Text style={styles.energyMood}>{lunarEnergy.mood}</Text>
           <Text style={styles.energyRecommendation}>{lunarEnergy.recommendation}</Text>
@@ -470,25 +465,25 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
           <TouchableOpacity style={[styles.recommendationCard, styles.doCard]}>
             <Text style={styles.recommendationIcon}>✅</Text>
             <Text style={styles.recommendationTitle}>Do Today</Text>
-            <Text style={styles.recommendationText}>Meditation & Reflection</Text>
+            <Text style={styles.recommendationText}>{lunarEnergy.doToday}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={[styles.recommendationCard, styles.avoidCard]}>
             <Text style={styles.recommendationIcon}>⚠️</Text>
             <Text style={styles.recommendationTitle}>Avoid Today</Text>
-            <Text style={styles.recommendationText}>Major Decisions</Text>
+            <Text style={styles.recommendationText}>{lunarEnergy.avoidToday}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={[styles.recommendationCard, styles.meditationCard]}>
             <Text style={styles.recommendationIcon}>🧘</Text>
             <Text style={styles.recommendationTitle}>Meditation Focus</Text>
-            <Text style={styles.recommendationText}>Release & Let Go</Text>
+            <Text style={styles.recommendationText}>{lunarEnergy.meditationFocus}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={[styles.recommendationCard, styles.ritualCard]}>
             <Text style={styles.recommendationIcon}>🕯️</Text>
             <Text style={styles.recommendationTitle}>Ritual Suggestion</Text>
-            <Text style={styles.recommendationText}>Moon Water Charging</Text>
+            <Text style={styles.recommendationText}>{lunarEnergy.ritualSuggestion}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -547,52 +542,132 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
     );
   };
 
-  const renderRitualGuidance = () => {
-    const ritualCards = [
+  // Helper function to get zodiac-specific colors
+  const getZodiacColor = (zodiacSign: string): string => {
+    const zodiacColors = {
+      'Aries': '#FF6B6B',      // Fire red
+      'Taurus': '#2DD4BF',     // Earth teal
+      'Gemini': '#F472B6',     // Air pink
+      'Cancer': '#60A5FA',     // Water blue
+      'Leo': '#FBBF24',        // Fire gold
+      'Virgo': '#10B981',      // Earth green
+      'Libra': '#A855F7',      // Air purple
+      'Scorpio': '#DC2626',    // Water deep red
+      'Sagittarius': '#F59E0B', // Fire orange
+      'Capricorn': '#6B7280',  // Earth gray
+      'Aquarius': '#06B6D4',   // Air cyan
+      'Pisces': '#8B5CF6',     // Water violet
+    };
+    return zodiacColors[zodiacSign as keyof typeof zodiacColors] || '#A855F7';
+  };
+
+  // Helper function to get time-based greeting
+  const getTimeBasedContext = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 6) return 'late night';
+    if (hour < 12) return 'morning';
+    if (hour < 18) return 'afternoon';
+    if (hour < 22) return 'evening';
+    return 'late evening';
+  };
+
+  // Generate personalized rituals based on user data
+  const generatePersonalizedRituals = () => {
+    const timeContext = getTimeBasedContext();
+    const zodiacColor = getZodiacColor(userData.zodiacSign);
+    const currentPhase = currentMoonPhase?.phase || 'Current Phase';
+
+    return [
       {
-        id: 'moon-water',
-        title: 'Moon Water Charging',
-        phase: 'Waning Gibbous',
-        icon: '🌊',
-        color: '#4FC3F7',
+        id: 'zodiac-alignment',
+        title: `${userData.zodiacSign} Energy Alignment`,
+        phase: currentPhase,
+        icon: '✨',
+        color: zodiacColor,
         steps: [
-          'Fill a clear glass jar with filtered water',
-          'Place under moonlight for 3-4 hours',
-          'Set intention for releasing and letting go',
-          'Store in refrigerator and use within 3 days'
+          `Find a quiet space for your ${timeContext} practice`,
+          `Hold an item that represents your ${userData.zodiacSign} energy`,
+          `Visualize your natural ${userData.zodiacSign} strengths flowing through you`,
+          `Set an intention aligned with your zodiac gifts`,
+          'Close by expressing gratitude for your unique cosmic blueprint'
         ],
-        description: 'Perfect for releasing negative energy and emotional cleansing during the waning phase.'
+        description: `Harness your natural ${userData.zodiacSign} traits to align with cosmic energies and enhance your personal power.`
       },
       {
-        id: 'meditation',
-        title: 'Lunar Meditation',
+        id: 'lunar-connection',
+        title: `${currentPhase} Manifestation`,
+        phase: currentPhase,
+        icon: '🌙',
+        color: '#2DD4BF',
+        steps: [
+          'Create a sacred space with soft lighting',
+          `Focus on the ${currentPhase} energy above you`,
+          'Write down what you wish to manifest or release',
+          'Hold the paper under moonlight (or visualize if indoors)',
+          `Keep or safely burn the paper based on ${currentPhase} energy`
+        ],
+        description: `Work with the powerful ${currentPhase} energy to manifest your desires and align with lunar cycles.`
+      },
+      {
+        id: 'grounding-ritual',
+        title: `${timeContext.charAt(0).toUpperCase() + timeContext.slice(1)} Grounding`,
         phase: 'All Phases',
-        icon: '🧘‍♀️',
-        color: '#8A4FFF',
+        icon: '🕯️',
+        color: '#F472B6',
         steps: [
-          'Find a quiet space with moonlight visibility',
-          'Light a white or silver candle',
-          'Focus on your breath for 5 minutes',
-          'Visualize lunar energy filling your body',
-          'Set intentions for the lunar cycle'
+          `Light a candle for your ${timeContext} practice`,
+          'Take 5 deep breaths to center yourself',
+          'Feel your connection to the earth beneath you',
+          'Visualize roots growing from your body into the ground',
+          'End by blowing out the candle with intention'
         ],
-        description: 'Connect with lunar energy through guided meditation and intention setting.'
-      },
-      {
-        id: 'crystal-charging',
-        title: 'Crystal Charging',
-        phase: 'Full Moon',
-        icon: '💎',
-        color: AppColors.cosmicGold,
-        steps: [
-          'Cleanse crystals with sage or salt water',
-          'Arrange in a circle under moonlight',
-          'Leave overnight for maximum charging',
-          'Retrieve at sunrise for balanced energy'
-        ],
-        description: 'Charge your crystals with powerful lunar energy during the full moon.'
+        description: `Perfect ${timeContext} ritual to ground your energy and connect with your inner wisdom.`
       }
     ];
+  };
+
+  const renderRitualGuidance = () => {
+    // Always show ritual guidance with personalized content
+    let ritualCards = [];
+    
+    if (lunarEnergy && lunarEnergy.ritualGuidance) {
+      // Use dynamic ritual guidance from lunar service
+      ritualCards = [
+        {
+          id: 'primary',
+          title: lunarEnergy.ritualGuidance.primary.title,
+          phase: currentMoonPhase?.phase || 'Current Phase',
+          icon: lunarEnergy.ritualGuidance.primary.icon,
+          color: lunarEnergy.ritualGuidance.primary.color,
+          steps: lunarEnergy.ritualGuidance.primary.steps,
+          description: lunarEnergy.ritualGuidance.primary.description
+        },
+        {
+          id: 'secondary',
+          title: lunarEnergy.ritualGuidance.secondary.title,
+          phase: currentMoonPhase?.phase || 'Current Phase',
+          icon: lunarEnergy.ritualGuidance.secondary.icon,
+          color: lunarEnergy.ritualGuidance.secondary.color,
+          steps: lunarEnergy.ritualGuidance.secondary.steps,
+          description: lunarEnergy.ritualGuidance.secondary.description
+        },
+        {
+          id: 'tertiary',
+          title: lunarEnergy.ritualGuidance.tertiary.title,
+          phase: currentMoonPhase?.phase || 'Current Phase',
+          icon: lunarEnergy.ritualGuidance.tertiary.icon,
+          color: lunarEnergy.ritualGuidance.tertiary.color,
+          steps: lunarEnergy.ritualGuidance.tertiary.steps,
+          description: lunarEnergy.ritualGuidance.tertiary.description
+        }
+      ];
+    } else {
+      // Use personalized ritual cards based on user data
+      ritualCards = generatePersonalizedRituals();
+    }
+
+    // Enforce exactly 3 cards
+    const displayRituals = ritualCards.slice(0, 3);
 
     return (
       <View style={styles.ritualContainer}>
@@ -600,18 +675,28 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
           Ritual Guidance
         </Text>
         
-        {ritualCards.map((ritual) => (
+        {displayRituals.map((ritual) => (
           <TouchableOpacity
             key={ritual.id}
             style={[
               styles.ritualCard,
-              { borderColor: ritual.color },
-              expandedCard === ritual.id && styles.expandedRitualCard
+              { 
+                borderColor: ritual.color,
+                backgroundColor: `${ritual.color}15` // Add subtle background tint
+              },
+              expandedCard === ritual.id && {
+                ...styles.expandedRitualCard,
+                borderColor: ritual.color,
+                backgroundColor: `${ritual.color}25` // Stronger background when expanded
+              }
             ]}
             onPress={() => handleCardPress(ritual.id)}
           >
             <View style={styles.ritualHeader}>
-              <View style={styles.ritualIconContainer}>
+              <View style={[
+                styles.ritualIconContainer,
+                { backgroundColor: `${ritual.color}20` }
+              ]}>
                 <Text style={styles.ritualIcon}>{ritual.icon}</Text>
               </View>
               <View style={styles.ritualTitleContainer}>
@@ -620,7 +705,10 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
                 </Text>
                 <Text style={styles.ritualPhase}>{ritual.phase}</Text>
               </View>
-              <Text style={styles.expandIcon}>
+              <Text style={[
+                styles.expandIcon,
+                { color: ritual.color }
+              ]}>
                 {expandedCard === ritual.id ? '−' : '+'}
               </Text>
             </View>
@@ -636,7 +724,14 @@ const LunaContent: React.FC<LunaContentProps> = ({ userData, onScroll }) => {
                 </Text>
                 {ritual.steps.map((step, index) => (
                   <View key={index} style={styles.stepItem}>
-                    <View style={[styles.stepNumber, { backgroundColor: ritual.color }]}>
+                    <View style={[
+                      styles.stepNumber, 
+                      { 
+                        backgroundColor: ritual.color,
+                        borderColor: ritual.color,
+                        borderWidth: 1
+                      }
+                    ]}>
                       <Text style={styles.stepNumberText}>{index + 1}</Text>
                     </View>
                     <Text style={styles.stepText}>{step}</Text>
@@ -781,7 +876,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 20,
   },
   headerLeft: {
     flex: 1,
@@ -986,12 +1081,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  energyGaugeHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
   energyGauge: {
     width: '100%',
     height: 20,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 10,
-    marginBottom: 8,
+    marginBottom: 16,
     position: 'relative',
   },
   gaugeBackground: {
@@ -1010,7 +1111,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: AppColors.cosmicGold,
     fontFamily: 'Montserrat_700Bold',
-    marginTop: 8,
   },
   energyMood: {
     fontSize: 14,
@@ -1024,6 +1124,7 @@ const styles = StyleSheet.create({
   },
   recommendationCard: {
     width: (width - 60) / 2,
+    height: 120,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderRadius: 16,
     padding: 16,
@@ -1031,6 +1132,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: AppColors.glassCardBorder,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   doCard: {
     borderColor: '#4CAF50',
@@ -1044,6 +1146,7 @@ const styles = StyleSheet.create({
   recommendationIcon: {
     fontSize: 24,
     marginBottom: 8,
+    textAlign: 'center',
   },
   recommendationTitle: {
     fontSize: 14,
@@ -1057,6 +1160,7 @@ const styles = StyleSheet.create({
     color: '#B8A9C9',
     fontFamily: 'Montserrat_400Regular',
     textAlign: 'center',
+    lineHeight: 16,
   },
   bottomSpacing: {
     height: 100,
@@ -1065,12 +1169,17 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   ritualCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 16,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: AppColors.glassCardBorder,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
   expandedRitualCard: {
     borderColor: AppColors.cosmicGold,
@@ -1081,13 +1190,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   ritualIconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   ritualIcon: {
     fontSize: 24,
@@ -1096,9 +1210,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   ritualTitle: {
-    fontSize: 18,
+    fontSize: 20,
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginBottom: 6,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
   ritualPhase: {
     fontSize: 12,
@@ -1133,18 +1249,24 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   stepNumber: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
     marginTop: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   stepNumberText: {
     fontSize: 12,
     color: '#FFFFFF',
     fontFamily: 'Montserrat_700Bold',
+    fontWeight: 'bold',
   },
   stepText: {
     flex: 1,
@@ -1152,17 +1274,6 @@ const styles = StyleSheet.create({
     color: '#B8A9C9',
     fontFamily: 'Montserrat_400Regular',
     lineHeight: 20,
-  },
-  zodiacContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  zodiacImage: {
-    width: 20,
-    height: 20,
-    marginLeft: 8,
   },
   // Loading and Error States
   loadingContainer: {

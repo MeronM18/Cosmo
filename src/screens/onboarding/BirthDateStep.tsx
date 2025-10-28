@@ -9,7 +9,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 
 export default function BirthDateStep({ data, update, next, back }: StepScreenProps) {
-  const [tempDate, setTempDate] = useState<Date>(data.birthDate || new Date(1990, 0, 1));
+  const defaultDate = data.birthDate || new Date();
+  const [tempDate, setTempDate] = useState<Date>(defaultDate);
   const [show, setShow] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -18,8 +19,6 @@ export default function BirthDateStep({ data, update, next, back }: StepScreenPr
     const now = new Date();
     const min = new Date(1900, 0, 1);
     if (date > now) return 'Birth date cannot be in the future';
-    const thirteenYearsAgo = new Date(now.getFullYear() - 13, now.getMonth(), now.getDate());
-    if (date > thirteenYearsAgo) return 'You must be at least 13 years old';
     if (date < min) return 'Please enter a valid birth date';
     return '';
   };
@@ -53,25 +52,18 @@ export default function BirthDateStep({ data, update, next, back }: StepScreenPr
                 <Ionicons name="chevron-back" size={22} color={AppColors.onSurface} />
               </TouchableOpacity>
               <View style={styles.stepContainer}>
-                <Text style={styles.stepText}>Step 2 of 4</Text>
+                <Text style={styles.stepText}>Step 3 of 5</Text>
                 {/* Progress */}
                 <View style={styles.progressBar}>
                   <LinearGradient
                     colors={[AppColors.secondary, AppColors.secondaryVariant]}
                     start={{ x: 0, y: 0.5 }}
                     end={{ x: 1, y: 0.5 }}
-                    style={[styles.progressFill, { width: '50%' }]}
+                    style={[styles.progressFill, { width: '60%' }]}
                   />
                 </View>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={back}
-              style={styles.closeButton}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.centerBlock}>
@@ -123,8 +115,6 @@ const styles = StyleSheet.create({
   stepContainer: { marginLeft: 0, width: 120 },
   backCircle: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
   stepText: { color: AppColors.textSecondary, fontSize: 16 },
-  closeButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  closeText: { color: AppColors.onSurface, fontSize: 16, fontWeight: '700' },
   progressBar: { width: '100%', height: 8, backgroundColor: 'rgba(107,76,122,0.3)', borderRadius: 8, overflow: 'hidden', marginTop: 4 },
   progressFill: { height: '100%', borderRadius: 8, shadowColor: AppColors.secondary, shadowOpacity: 0.3, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   centerBlock: { flex: 1, alignItems: 'center', justifyContent: 'center' },

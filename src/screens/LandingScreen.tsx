@@ -8,6 +8,7 @@ import {
   Animated,
   StatusBar,
   TouchableWithoutFeedback,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -35,10 +36,11 @@ interface ShootingStar {
 }
 
 interface CosmoSplashScreenProps {
-  onAnimationComplete?: () => void;
+  onGetStarted?: () => void;
+  onLogin?: () => void;
 }
 
-const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComplete }) => {
+const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onGetStarted, onLogin }) => {
   const [stars, setStars] = useState<Star[]>([]);
   const [shootingStars, setShootingStars] = useState<ShootingStar[]>([]);
   const [fontsLoaded] = useFonts({ Cinzel_700Bold, Cinzel_400Regular });
@@ -56,6 +58,7 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
   const ctaScale = useRef(new Animated.Value(1)).current;
   const rippleScale = useRef(new Animated.Value(0)).current;
   const rippleOpacity = useRef(new Animated.Value(0)).current;
+  const loginScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     StatusBar.setBarStyle('light-content');
@@ -190,18 +193,18 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
         }),
         Animated.timing(logoOpacity, {
           toValue: 1,
-          duration: 1000,
+          duration: 600,
           useNativeDriver: true,
         }),
       ]).start();
-    }, 500);
+    }, 200);
 
     // Title animation
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(titleOpacity, {
           toValue: 1,
-          duration: 800,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.spring(titleTranslateY, {
@@ -211,14 +214,14 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
           useNativeDriver: true,
         }),
       ]).start();
-    }, 1500);
+    }, 800);
 
     // Subtitle animation
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(subtitleOpacity, {
           toValue: 1,
-          duration: 800,
+          duration: 500,
           useNativeDriver: true,
         }),
         Animated.spring(subtitleTranslateY, {
@@ -228,12 +231,9 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
           useNativeDriver: true,
         }),
       ]).start();
-    }, 2200);
+    }, 1200);
 
-    // Complete animation callback
-    setTimeout(() => {
-      onAnimationComplete?.();
-    }, 4000);
+    // Animation complete - no auto-navigation, wait for user button press
   };
 
   return (
@@ -311,20 +311,22 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
 
         {/* CTA */}
         <Animated.View style={[styles.ctaWrapper, { opacity: titleOpacity, transform: [{ translateY: titleTranslateY }] }] }>
-          <TouchableWithoutFeedback
+          <TouchableOpacity
             onPressIn={() => {
-              Animated.spring(ctaScale, { toValue: 0.92, useNativeDriver: true, speed: 20, bounciness: 0 }).start();
+              Animated.spring(ctaScale, { toValue: 0.95, useNativeDriver: true, speed: 50, bounciness: 0 }).start();
               // ripple
               rippleScale.setValue(0);
               rippleOpacity.setValue(0.4);
               Animated.parallel([
-                Animated.timing(rippleScale, { toValue: 2.2, duration: 600, useNativeDriver: true }),
-                Animated.timing(rippleOpacity, { toValue: 0, duration: 600, useNativeDriver: true }),
+                Animated.timing(rippleScale, { toValue: 2.2, duration: 300, useNativeDriver: true }),
+                Animated.timing(rippleOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
               ]).start();
             }}
             onPressOut={() => {
-              Animated.spring(ctaScale, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 6 }).start();
+              Animated.spring(ctaScale, { toValue: 1, useNativeDriver: true, speed: 50, bounciness: 8 }).start();
             }}
+            onPress={onGetStarted}
+            activeOpacity={0.8}
           >
             <Animated.View style={[styles.ctaButton, { transform: [{ scale: ctaScale }] }] }>
               {/* Massive outer glow */}
@@ -342,7 +344,36 @@ const CosmoSplashScreen: React.FC<CosmoSplashScreenProps> = ({ onAnimationComple
                 <Text style={[styles.ctaText, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>Get Started</Text>
               </LinearGradient>
             </Animated.View>
-          </TouchableWithoutFeedback>
+          </TouchableOpacity>
+          
+          {/* Login Link */}
+          <TouchableOpacity 
+            style={styles.loginLink}
+            onPressIn={() => {
+              Animated.spring(loginScale, { 
+                toValue: 0.95, 
+                useNativeDriver: true, 
+                speed: 20, 
+                bounciness: 0 
+              }).start();
+            }}
+            onPressOut={() => {
+              Animated.spring(loginScale, { 
+                toValue: 1, 
+                useNativeDriver: true, 
+                speed: 20, 
+                bounciness: 6 
+              }).start();
+            }}
+            onPress={onLogin}
+            activeOpacity={1}
+          >
+            <Animated.View style={{ transform: [{ scale: loginScale }] }}>
+              <Text style={[styles.loginLinkText, fontsLoaded && { fontFamily: 'Cinzel_400Regular' }]}>
+                Have an Account? Log in
+              </Text>
+            </Animated.View>
+          </TouchableOpacity>
         </Animated.View>
       </View>
     </View>
@@ -461,7 +492,7 @@ const styles = StyleSheet.create({
   },
   ctaWrapper: {
     position: 'absolute',
-    bottom: 110,
+    bottom: 60,
     left: 0,
     right: 0,
     alignItems: 'center',
@@ -526,6 +557,17 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 22,
     fontWeight: '800',
+  },
+  loginLink: {
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+  },
+  loginLinkText: {
+    color: '#D6D6E7',
+    fontSize: 16,
+    textAlign: 'center',
+    opacity: 0.8,
   },
   loadingDot: {
     width: 8,

@@ -126,26 +126,26 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
     '6 months - 1 year', '1-2 years', '2-5 years', '5+ years'
   ];
 
-  // Initialize particle system
+  // Initialize particle system with reduced count for better performance
   useEffect(() => {
-    const particles = Array.from({ length: 50 }, (_, i) => ({
+    const particles = Array.from({ length: 25 }, (_, i) => ({ // Reduced from 50 to 25
       id: i,
       x: Math.random() * width,
       y: Math.random() * height,
-      size: Math.random() * 3 + 1,
-      opacity: Math.random() * 0.6 + 0.2,
-      speed: Math.random() * 0.5 + 0.1,
+      size: Math.random() * 2 + 1, // Reduced max size from 3 to 2
+      opacity: Math.random() * 0.4 + 0.2, // Reduced max opacity from 0.6 to 0.4
+      speed: Math.random() * 0.3 + 0.1, // Reduced speed for smoother animation
       direction: Math.random() * Math.PI * 2,
     }));
     setBackgroundParticles(particles);
 
-    // Initialize shooting stars
-    const stars = Array.from({ length: 3 }, (_, i) => ({
+    // Initialize shooting stars with reduced count
+    const stars = Array.from({ length: 2 }, (_, i) => ({ // Reduced from 3 to 2
       id: i,
       x: -100,
       y: Math.random() * height,
-      length: Math.random() * 100 + 50,
-      speed: Math.random() * 2 + 1,
+      length: Math.random() * 80 + 40, // Reduced length
+      speed: Math.random() * 1.5 + 0.8, // Slightly reduced speed
       opacity: 0,
     }));
     setShootingStars(stars);
@@ -164,23 +164,23 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
     return () => clearInterval(shootingStarInterval);
   }, []);
 
-  // Entrance animations
+  // Entrance animations - optimized timing
   useEffect(() => {
     if (isVisible) {
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
-          duration: 500,
+          duration: 300, // Reduced from 500ms
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: 0,
-          duration: 600,
+          duration: 400, // Reduced from 600ms
           useNativeDriver: true,
         }),
         Animated.timing(constellationAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 600, // Reduced from 1000ms
           useNativeDriver: true,
         }),
       ]).start();
@@ -211,15 +211,15 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
     onClose();
   };
 
-  // Starfield rendering functions
+  // Starfield rendering functions - optimized for performance
   const renderParallaxStarfield = () => {
     return (
       <View style={styles.starfieldContainer}>
-        {/* Background layer */}
+        {/* Background layer - reduced stars */}
         <Animated.View style={[styles.starfieldLayer, { 
           transform: [{ translateY: parallaxAnim1 }] 
         }]}>
-          {Array.from({ length: 20 }, (_, i) => (
+          {Array.from({ length: 8 }, (_, i) => ( // Reduced from 20 to 8
             <View key={i} style={[styles.star, {
               left: Math.random() * width,
               top: Math.random() * height,
@@ -230,32 +230,32 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
           ))}
         </Animated.View>
         
-        {/* Midground layer */}
+        {/* Midground layer - reduced stars */}
         <Animated.View style={[styles.starfieldLayer, { 
           transform: [{ translateY: parallaxAnim2 }] 
         }]}>
-          {Array.from({ length: 15 }, (_, i) => (
+          {Array.from({ length: 6 }, (_, i) => ( // Reduced from 15 to 6
             <View key={i} style={[styles.star, {
               left: Math.random() * width,
               top: Math.random() * height,
-              opacity: 0.6,
+              opacity: 0.5, // Slightly reduced opacity
               width: 2,
               height: 2,
             }]} />
           ))}
         </Animated.View>
         
-        {/* Foreground layer */}
+        {/* Foreground layer - reduced stars */}
         <Animated.View style={[styles.starfieldLayer, { 
           transform: [{ translateY: parallaxAnim3 }] 
         }]}>
-          {Array.from({ length: 10 }, (_, i) => (
+          {Array.from({ length: 4 }, (_, i) => ( // Reduced from 10 to 4
             <View key={i} style={[styles.star, {
               left: Math.random() * width,
               top: Math.random() * height,
-              opacity: 0.8,
-              width: 3,
-              height: 3,
+              opacity: 0.7, // Slightly reduced opacity
+              width: 2, // Reduced from 3 to 2
+              height: 2,
             }]} />
           ))}
         </Animated.View>
@@ -286,7 +286,7 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
     ));
   };
 
-  const renderStepIndicator = () => (
+  const renderStepIndicator = React.memo(() => (
     <View style={styles.stepIndicator}>
       {Array.from({ length: 7 }, (_, i) => (
         <View
@@ -298,9 +298,9 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
         />
       ))}
     </View>
-  );
+  ));
 
-  const renderStep1 = () => (
+  const renderStep1 = React.memo(() => (
     <View style={styles.stepContainer}>
       <Text style={[styles.stepTitle, fontsLoaded ? { fontFamily: 'Cinzel_700Bold' } : { fontFamily: 'System' }]}>
         What kind of connection are you exploring?
@@ -334,9 +334,9 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
         ))}
       </View>
     </View>
-  );
+  ));
 
-  const renderStep2 = () => (
+  const renderStep2 = React.memo(() => (
     <View style={styles.stepContainer}>
       <Text style={[styles.stepTitle, fontsLoaded ? { fontFamily: 'Cinzel_700Bold' } : { fontFamily: 'System' }]}>
         What should we call them?
@@ -359,7 +359,7 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
         </Text>
       </View>
     </View>
-  );
+  ));
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
@@ -595,16 +595,21 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
 
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 1: return renderStep1();
-      case 2: return renderStep2();
+      case 1: return <Step1 />;
+      case 2: return <Step2 />;
       case 3: return renderStep3();
       case 4: return renderStep4();
       case 5: return renderStep5();
       case 6: return renderStep6();
       case 7: return renderStep7();
-      default: return renderStep1();
+      default: return <Step1 />;
     }
   };
+
+  // Memoized step components
+  const Step1 = renderStep1;
+  const Step2 = renderStep2;
+  const StepIndicator = renderStepIndicator;
 
   const canProceed = () => {
     switch (currentStep) {
@@ -659,7 +664,7 @@ const PartnerOnboardingFlow: React.FC<PartnerOnboardingFlowProps> = ({
           </View>
 
           {/* Step Indicator */}
-          {renderStepIndicator()}
+          <StepIndicator />
 
           {/* Step Content */}
           <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false}>

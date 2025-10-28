@@ -11,6 +11,9 @@ export const AppColors = {
   onSecondary: '#FFFFFF', // Star White
   onBackground: '#FFFFFF', // Star White
   onSurface: '#FFFFFF', // Star White
+  onSurfaceVariant: '#B8A9C9', // Secondary Text
+  surfaceVariant: 'rgba(255, 255, 255, 0.05)', // Subtle Surface Variant
+  border: 'rgba(255, 255, 255, 0.12)', // Glass Card Border
   overlay: '#1A0B3A', // Midnight Purple
   inactive: '#6B5B7B', // Muted Text
   textSecondary: '#B8A9C9', // Secondary Text

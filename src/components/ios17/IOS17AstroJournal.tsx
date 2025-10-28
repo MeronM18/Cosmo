@@ -363,8 +363,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
       <TouchableOpacity
         onPress={() => removeGratitudeItem(index)}
         style={styles.removeButton}
-        accessibilityLabel={`Remove gratitude item: ${item}`}
-        accessibilityRole="button"
       >
         <Text style={styles.removeButtonText}>{iOS17Theme.symbols.xmark}</Text>
       </TouchableOpacity>
@@ -375,8 +373,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
     <TouchableOpacity
       style={styles.goalItem}
       onPress={() => toggleGoalCompletion(item.id)}
-      accessibilityLabel={`${item.isCompleted ? 'Mark as incomplete' : 'Mark as complete'}: ${item.text}`}
-      accessibilityRole="button"
     >
       <Text style={[
         styles.goalText,
@@ -497,8 +493,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
               await loadJournalHistory();
               setShowHistory(true);
             }}
-            accessibilityLabel="Open journal history"
-            accessibilityRole="button"
           >
             <Text style={styles.historyIcon}>↺</Text>
           </TouchableOpacity>
@@ -528,8 +522,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
                     setCurrentMood(index + 1);
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   }}
-                  accessibilityLabel={`Set mood to ${moodLabels[index]}`}
-                  accessibilityRole="button"
                 >
                   <Text style={styles.moodEmoji}>{emoji}</Text>
                   <Text style={[
@@ -553,14 +545,13 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
               placeholderTextColor={iOS17Theme.colors.quaternaryLabel}
               value={newGratitudeItem}
               onChangeText={setNewGratitudeItem}
+              allowFontScaling={true}
+              maxFontSizeMultiplier={1.3}
               onSubmitEditing={addGratitudeItem}
-              accessibilityLabel="Add gratitude item"
             />
             <TouchableOpacity
               style={styles.addButton}
               onPress={addGratitudeItem}
-              accessibilityLabel="Add gratitude item"
-              accessibilityRole="button"
             >
               <Text style={styles.addButtonText}>{iOS17Theme.symbols.plus}</Text>
             </TouchableOpacity>
@@ -583,14 +574,13 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
               placeholderTextColor={iOS17Theme.colors.quaternaryLabel}
               value={newGoal}
               onChangeText={setNewGoal}
+              allowFontScaling={true}
+              maxFontSizeMultiplier={1.3}
               onSubmitEditing={addGoal}
-              accessibilityLabel="Add goal"
             />
             <TouchableOpacity
               style={styles.addButton}
               onPress={addGoal}
-              accessibilityLabel="Add goal"
-              accessibilityRole="button"
             >
               <Text style={styles.addButtonText}>{iOS17Theme.symbols.plus}</Text>
             </TouchableOpacity>
@@ -607,8 +597,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
         <TouchableOpacity
           style={styles.journalButton}
           onPress={() => setShowJournal(true)}
-          accessibilityLabel="Write journal entry"
-          accessibilityRole="button"
         >
           <Text style={styles.journalButtonText}>📝 Write Journal Entry</Text>
         </TouchableOpacity>
@@ -630,8 +618,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowJournal(false)}
-                accessibilityLabel="Close journal entry"
-                accessibilityRole="button"
               >
                 <Text style={styles.closeButtonText}>{iOS17Theme.symbols.xmark}</Text>
               </TouchableOpacity>
@@ -648,10 +634,11 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
                 placeholderTextColor={iOS17Theme.colors.quaternaryLabel}
                 value={journalText}
                 onChangeText={setJournalText}
+                allowFontScaling={true}
+                maxFontSizeMultiplier={1.3}
                 multiline
                 textAlignVertical="top"
                 maxLength={1000}
-                accessibilityLabel="Journal entry text input"
               />
               
               <Text style={styles.characterCount}>
@@ -667,8 +654,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
                   }
                 }}
                 disabled={!journalText.trim()}
-                accessibilityLabel="Save journal entry"
-                accessibilityRole="button"
               >
                 <Text style={styles.saveButtonText}>Save Entry</Text>
               </TouchableOpacity>
@@ -690,8 +675,6 @@ const IOS17AstroJournal: React.FC<IOS17AstroJournalProps> = ({
               <TouchableOpacity
                 style={styles.closeButton}
                 onPress={() => setShowHistory(false)}
-                accessibilityLabel="Close journal history"
-                accessibilityRole="button"
               >
                 <Text style={styles.closeButtonText}>{iOS17Theme.symbols.xmark}</Text>
               </TouchableOpacity>

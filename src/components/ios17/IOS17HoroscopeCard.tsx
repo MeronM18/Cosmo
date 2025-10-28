@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,14 @@ import {
   Platform,
 } from 'react-native';
 import { iOS17Theme } from '../../theme/ios17Theme';
+import { getWordOfTheDay, WordOfTheDay } from '../../utils/wordOfTheDay';
 
 const { width } = Dimensions.get('window');
 
 interface IOS17HoroscopeCardProps {
   zodiacSign: string;
   mainReading: string;
-  wordOfDay: string;
+  wordOfDay?: string; // Made optional since we'll fetch it dynamically
   onReadFullAnalysis: () => void;
   onShare: () => void;
   onSave: () => void;
@@ -26,11 +27,37 @@ interface IOS17HoroscopeCardProps {
 const IOS17HoroscopeCard: React.FC<IOS17HoroscopeCardProps> = ({
   zodiacSign,
   mainReading,
-  wordOfDay,
+  wordOfDay: propWordOfDay,
   onReadFullAnalysis,
   onShare,
   onSave,
 }) => {
+  const [dynamicWord, setDynamicWord] = useState<WordOfTheDay | null>(null);
+  const [isLoadingWord, setIsLoadingWord] = useState(true);
+
+  // Fetch word of the day on component mount
+  useEffect(() => {
+    const fetchWordOfTheDay = async () => {
+      try {
+        setIsLoadingWord(true);
+        const word = await getWordOfTheDay();
+        setDynamicWord(word);
+      } catch (error) {
+        console.error('Failed to fetch word of the day:', error);
+        // Fallback to prop or default
+        setDynamicWord({
+          word: propWordOfDay || 'Harmony',
+          category: 'cosmic',
+          definition: 'Perfect balance and peaceful coexistence'
+        });
+      } finally {
+        setIsLoadingWord(false);
+      }
+    };
+
+    fetchWordOfTheDay();
+  }, [propWordOfDay]);
+
   const initials = zodiacSign?.charAt(0)?.toUpperCase() || 'Z';
   const zodiacImages: Record<string, any> = {
     aries: require('../../../assets/aries.png'),
@@ -48,7 +75,6 @@ const IOS17HoroscopeCard: React.FC<IOS17HoroscopeCardProps> = ({
   };
   const zodiacKey = (zodiacSign || '').toLowerCase();
   const zodiacIcon = zodiacImages[zodiacKey];
-  const generatedAt = 'Daily reading';
 
   return (
     <View style={styles.container}>
@@ -65,7 +91,7 @@ const IOS17HoroscopeCard: React.FC<IOS17HoroscopeCardProps> = ({
             </View>
             <View>
               <Text style={styles.signName}>{zodiacSign}</Text>
-              <Text style={styles.generatedAt}>Generated {generatedAt}</Text>
+              <Text style={styles.generatedAt}>Daily reading</Text>
             </View>
           </View>
           {/* Right side icon removed per design refinement */}
@@ -74,8 +100,12 @@ const IOS17HoroscopeCard: React.FC<IOS17HoroscopeCardProps> = ({
         {/* Word of the Day badge */}
         <View style={styles.badgeRow}>
           <View style={styles.badge}>
-            <Text style={styles.badgeLabel}>Word of the day</Text>
-            <Text style={styles.badgeValue}>{wordOfDay}</Text>
+            <Text style={styles.badgeLabel}>Word of the day:</Text>
+            {isLoadingWord ? (
+              <Text style={[styles.badgeValue, styles.loadingText]}>Loading...</Text>
+            ) : (
+              <Text style={styles.badgeValue}>{dynamicWord?.word || 'Harmony'}</Text>
+            )}
           </View>
         </View>
 
@@ -87,17 +117,6 @@ const IOS17HoroscopeCard: React.FC<IOS17HoroscopeCardProps> = ({
           </Text>
         </View>
 
-        {/* Actions */}
-        <View style={styles.footerRow}>
-          <TouchableOpacity style={styles.primaryCta} onPress={onReadFullAnalysis} activeOpacity={0.8}>
-            <Text style={styles.primaryCtaText}>Read full analysis</Text>
-          </TouchableOpacity>
-          <View style={styles.footerIcons}>
-            <TouchableOpacity style={styles.smallIconButton} onPress={onShare}>
-              <Text style={styles.smallIconText}>↗︎</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     </View>
   );
@@ -184,7 +203,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   readingSection: {
-    marginBottom: iOS17Theme.spacing.lg,
+    marginTop: iOS17Theme.spacing.sm,
+    marginBottom: iOS17Theme.spacing.sm,
   },
   readingHeaderText: {
     color: iOS17Theme.colors.label,
@@ -233,6 +253,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: iOS17Theme.colors.label,
     fontWeight: '600',
+  },
+  loadingText: {
+    opacity: 0.6,
+    fontStyle: 'italic',
   },
 });
 

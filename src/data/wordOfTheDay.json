@@ -1,0 +1,1574 @@
+{
+  "words": [
+    {
+      "word": "Alignment",
+      "category": "cosmic",
+      "definition": "The harmonious arrangement of celestial energies"
+    },
+    {
+      "word": "Serendipity",
+      "category": "spiritual",
+      "definition": "The occurrence of fortunate events by chance"
+    },
+    {
+      "word": "Transcendence",
+      "category": "spiritual",
+      "definition": "Rising above ordinary limitations"
+    },
+    {
+      "word": "Radiance",
+      "category": "emotional",
+      "definition": "Bright, glowing inner light and energy"
+    },
+    {
+      "word": "Clarity",
+      "category": "mental",
+      "definition": "Clear understanding and perception"
+    },
+    {
+      "word": "Abundance",
+      "category": "manifestation",
+      "definition": "Plentiful flow of positive energy"
+    },
+    {
+      "word": "Transformation",
+      "category": "spiritual",
+      "definition": "Deep, meaningful change and growth"
+    },
+    {
+      "word": "Harmony",
+      "category": "cosmic",
+      "definition": "Perfect balance and peaceful coexistence"
+    },
+    {
+      "word": "Intuition",
+      "category": "psychic",
+      "definition": "Inner knowing beyond logical reasoning"
+    },
+    {
+      "word": "Balance",
+      "category": "cosmic",
+      "definition": "Equilibrium between opposing forces"
+    },
+    {
+      "word": "Manifestation",
+      "category": "manifestation",
+      "definition": "Bringing desires into physical reality"
+    },
+    {
+      "word": "Enlightenment",
+      "category": "spiritual",
+      "definition": "Spiritual awakening and understanding"
+    },
+    {
+      "word": "Synchronicity",
+      "category": "cosmic",
+      "definition": "Meaningful coincidences in life"
+    },
+    {
+      "word": "Wisdom",
+      "category": "mental",
+      "definition": "Deep understanding gained through experience"
+    },
+    {
+      "word": "Compassion",
+      "category": "emotional",
+      "definition": "Deep empathy and loving kindness"
+    },
+    {
+      "word": "Gratitude",
+      "category": "emotional",
+      "definition": "Appreciation for life's blessings"
+    },
+    {
+      "word": "Resilience",
+      "category": "emotional",
+      "definition": "Strength to overcome challenges"
+    },
+    {
+      "word": "Mindfulness",
+      "category": "mental",
+      "definition": "Present moment awareness"
+    },
+    {
+      "word": "Authenticity",
+      "category": "spiritual",
+      "definition": "Being true to your genuine self"
+    },
+    {
+      "word": "Courage",
+      "category": "emotional",
+      "definition": "Bravery in facing fears and challenges"
+    },
+    {
+      "word": "Patience",
+      "category": "emotional",
+      "definition": "Peaceful acceptance of divine timing"
+    },
+    {
+      "word": "Wonder",
+      "category": "emotional",
+      "definition": "Awe and curiosity about the universe"
+    },
+    {
+      "word": "Grace",
+      "category": "spiritual",
+      "definition": "Divine blessing and elegant presence"
+    },
+    {
+      "word": "Renewal",
+      "category": "spiritual",
+      "definition": "Fresh beginning and revitalization"
+    },
+    {
+      "word": "Inspiration",
+      "category": "mental",
+      "definition": "Divine spark of creative energy"
+    },
+    {
+      "word": "Devotion",
+      "category": "spiritual",
+      "definition": "Dedicated commitment to higher purpose"
+    },
+    {
+      "word": "Prosperity",
+      "category": "manifestation",
+      "definition": "Flourishing in all areas of life"
+    },
+    {
+      "word": "Serenity",
+      "category": "emotional",
+      "definition": "Peaceful calm and tranquility"
+    },
+    {
+      "word": "Vitality",
+      "category": "physical",
+      "definition": "Life force energy and vigor"
+    },
+    {
+      "word": "Connection",
+      "category": "cosmic",
+      "definition": "Unity with others and the universe"
+    },
+    {
+      "word": "Purpose",
+      "category": "spiritual",
+      "definition": "Meaningful reason for existence"
+    },
+    {
+      "word": "Freedom",
+      "category": "spiritual",
+      "definition": "Liberation from limiting beliefs"
+    },
+    {
+      "word": "Joy",
+      "category": "emotional",
+      "definition": "Pure happiness from within"
+    },
+    {
+      "word": "Trust",
+      "category": "emotional",
+      "definition": "Faith in the universe's plan"
+    },
+    {
+      "word": "Flow",
+      "category": "cosmic",
+      "definition": "Effortless movement with life's rhythm"
+    },
+    {
+      "word": "Presence",
+      "category": "mental",
+      "definition": "Full awareness in the current moment"
+    },
+    {
+      "word": "Healing",
+      "category": "spiritual",
+      "definition": "Restoration of wholeness and health"
+    },
+    {
+      "word": "Creativity",
+      "category": "mental",
+      "definition": "Divine expression through imagination"
+    },
+    {
+      "word": "Acceptance",
+      "category": "emotional",
+      "definition": "Peaceful embrace of what is"
+    },
+    {
+      "word": "Expansion",
+      "category": "spiritual",
+      "definition": "Growth beyond current limitations"
+    },
+    {
+      "word": "Bliss",
+      "category": "emotional",
+      "definition": "Supreme happiness and contentment"
+    },
+    {
+      "word": "Awakening",
+      "category": "spiritual",
+      "definition": "Spiritual consciousness emerging"
+    },
+    {
+      "word": "Magnetism",
+      "category": "cosmic",
+      "definition": "Attractive force drawing desires closer"
+    },
+    {
+      "word": "Stillness",
+      "category": "mental",
+      "definition": "Peaceful quiet of the mind"
+    },
+    {
+      "word": "Luminosity",
+      "category": "cosmic",
+      "definition": "Bright spiritual light within"
+    },
+    {
+      "word": "Reverence",
+      "category": "spiritual",
+      "definition": "Deep respect for the sacred"
+    },
+    {
+      "word": "Empowerment",
+      "category": "emotional",
+      "definition": "Reclaiming your inner strength"
+    },
+    {
+      "word": "Mysticism",
+      "category": "psychic",
+      "definition": "Connection to hidden spiritual truths"
+    },
+    {
+      "word": "Infinity",
+      "category": "cosmic",
+      "definition": "Boundless eternal nature of existence"
+    },
+    {
+      "word": "Alchemy",
+      "category": "spiritual",
+      "definition": "Transformation of base into gold"
+    },
+    {
+      "word": "Resonance",
+      "category": "cosmic",
+      "definition": "Vibrational harmony with the universe"
+    },
+    {
+      "word": "Sanctuary",
+      "category": "spiritual",
+      "definition": "Sacred space of peace and safety"
+    },
+    {
+      "word": "Emergence",
+      "category": "spiritual",
+      "definition": "Coming into being and visibility"
+    },
+    {
+      "word": "Luminescence",
+      "category": "cosmic",
+      "definition": "Gentle glow of inner light"
+    },
+    {
+      "word": "Devotion",
+      "category": "spiritual",
+      "definition": "Loving dedication to higher purpose"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Delicate and otherworldly beauty"
+    },
+    {
+      "word": "Metamorphosis",
+      "category": "spiritual",
+      "definition": "Complete transformation of being"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Heavenly and divine in nature"
+    },
+    {
+      "word": "Enchantment",
+      "category": "mystical",
+      "definition": "Magical charm and fascination"
+    },
+    {
+      "word": "Divinity",
+      "category": "spiritual",
+      "definition": "Sacred divine essence within"
+    },
+    {
+      "word": "Mystique",
+      "category": "mystical",
+      "definition": "Mysterious and alluring quality"
+    },
+    {
+      "word": "Ascension",
+      "category": "spiritual",
+      "definition": "Rising to higher consciousness"
+    },
+    {
+      "word": "Euphoria",
+      "category": "emotional",
+      "definition": "Intense feeling of happiness"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Beyond ordinary physical existence"
+    },
+    {
+      "word": "Cosmic",
+      "category": "cosmic",
+      "definition": "Universal and infinitely vast"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Inspiring awe through beauty"
+    },
+    {
+      "word": "Epiphany",
+      "category": "mental",
+      "definition": "Sudden profound realization"
+    },
+    {
+      "word": "Nirvana",
+      "category": "spiritual",
+      "definition": "State of perfect peace"
+    },
+    {
+      "word": "Zenith",
+      "category": "cosmic",
+      "definition": "Highest point of achievement"
+    },
+    {
+      "word": "Quintessence",
+      "category": "spiritual",
+      "definition": "Perfect embodiment of something"
+    },
+    {
+      "word": "Effulgence",
+      "category": "cosmic",
+      "definition": "Brilliant radiant light"
+    },
+    {
+      "word": "Beatitude",
+      "category": "spiritual",
+      "definition": "Supreme blessedness"
+    },
+    {
+      "word": "Rapture",
+      "category": "emotional",
+      "definition": "Intense spiritual ecstasy"
+    },
+    {
+      "word": "Omniscience",
+      "category": "mental",
+      "definition": "Infinite knowledge and wisdom"
+    },
+    {
+      "word": "Apotheosis",
+      "category": "spiritual",
+      "definition": "Elevation to divine status"
+    },
+    {
+      "word": "Incandescence",
+      "category": "cosmic",
+      "definition": "Passionate glowing intensity"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Blissfully serene and peaceful"
+    },
+    {
+      "word": "Luminous",
+      "category": "cosmic",
+      "definition": "Radiating bright spiritual light"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Extremely delicate and light"
+    },
+    {
+      "word": "Ineffable",
+      "category": "mystical",
+      "definition": "Too great to be expressed in words"
+    },
+    {
+      "word": "Transcendental",
+      "category": "spiritual",
+      "definition": "Beyond physical and material existence"
+    },
+    {
+      "word": "Omnipresent",
+      "category": "cosmic",
+      "definition": "Present everywhere simultaneously"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Shining brilliantly and magnificently"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Inspiring deep reverence and awe"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Belonging to heaven or divine realm"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Intensely happy and confident"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Having spiritual or supernatural significance"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Going beyond normal limits"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Emitting light without heat"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Blissfully happy and peaceful"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Extremely delicate and refined"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Having unlimited power"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Attractive and impressive through richness"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Of high spiritual or moral worth"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Positioned in or relating to sky"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Characterized by euphoria"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Relating to mystics or mysticism"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Beyond or above range of normal experience"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Giving off light produced by chemical reaction"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Bestowing or indicative of celestial happiness"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Characterized by unusual lightness"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Having very great power or influence"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Shining brilliantly"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Complete or used to emphasize degree"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Supremely good"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Feeling or expressing overwhelming happiness"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Inspiring sense of spiritual mystery"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Existing apart from material experience"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Emitting or reflecting light"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Blissfully happy"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Lacking material substance"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Having complete or unlimited power"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Splendid and impressive"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Extreme or unparalleled"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Divinely beautiful or peaceful"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Intensely excited or happy"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Having spiritual significance"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Surpassing usual limits"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Producing light by luminescence"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Serene and happy"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Heavenly or spiritual"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "All-powerful"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Dazzling"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Awe-inspiring"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Heavenly"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Elated"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Mysterious"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Superior"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Glowing"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Peaceful"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Ghostly"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Almighty"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Brilliant"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Magnificent"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Angelic"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Ecstatic"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Enigmatic"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Radiant"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Blessed"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Unearthly"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Supreme"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Glorious"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Exalted"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Divine"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Jubilant"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Arcane"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Elevated"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Shining"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Saintly"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Spectral"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Invincible"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Lustrous"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Noble"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Seraphic"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Rapturous"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Occult"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Paramount"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Incandescent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Serene"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Incorporeal"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Omnipresent"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Effulgent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Empyrean"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Exhilarated"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Esoteric"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Supernal"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Phosphorescent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Blissful"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Immaterial"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Omniscient"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Refulgent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Majestic"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Supernal"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Transported"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Cabalistic"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Ineffable"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Fluorescent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Heavenly"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Intangible"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Unlimited"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Coruscating"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Inspiring"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Paradisiacal"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Enraptured"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Hermetic"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Surpassing"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Scintillating"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Angelic"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Vaporous"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Sovereign"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Scintillant"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Elevated"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Elysian"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Intoxicated"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Numinous"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Preeminent"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Coruscant"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Seraphic"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Tenuous"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Paramount"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Fulgent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Lofty"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Empyreal"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Exultant"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Theosophical"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Consummate"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Lambent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Cherubic"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Diaphanous"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Plenipotentiary"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Rutilant"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Superlative"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Uranographic"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Rhapsodic"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Gnostic"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Supramundane"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Lucent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Paradisiac"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Gossamer"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Almighty"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Aureate"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Empyrean"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Sidereal"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Transcendental"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Metaphysical"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Effulgent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Empyrean"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Subliminal"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Incandescent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Astral"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Supernatural"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Divine"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Resplendent"
+    },
+    {
+      "word": "Celestial",
+      "category": "cosmic",
+      "definition": "Sublime"
+    },
+    {
+      "word": "Euphoric",
+      "category": "emotional",
+      "definition": "Celestial"
+    },
+    {
+      "word": "Mystical",
+      "category": "mystical",
+      "definition": "Euphoric"
+    },
+    {
+      "word": "Transcendent",
+      "category": "spiritual",
+      "definition": "Mystical"
+    },
+    {
+      "word": "Luminescent",
+      "category": "cosmic",
+      "definition": "Transcendent"
+    },
+    {
+      "word": "Beatific",
+      "category": "spiritual",
+      "definition": "Luminescent"
+    },
+    {
+      "word": "Ethereal",
+      "category": "cosmic",
+      "definition": "Beatific"
+    },
+    {
+      "word": "Omnipotent",
+      "category": "cosmic",
+      "definition": "Ethereal"
+    },
+    {
+      "word": "Resplendent",
+      "category": "cosmic",
+      "definition": "Omnipotent"
+    },
+    {
+      "word": "Sublime",
+      "category": "emotional",
+      "definition": "Resplendent"
+    }
+  ]
+}
