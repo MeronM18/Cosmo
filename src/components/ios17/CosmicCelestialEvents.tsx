@@ -10,10 +10,9 @@ import {
   Alert,
   Platform,
   Dimensions,
-  PanGestureHandler,
-  State,
   RefreshControl,
 } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -28,19 +27,16 @@ import CosmicLoadingSkeleton from './CosmicLoadingSkeleton';
 const { width, height } = Dimensions.get('window');
 
 interface CosmicCelestialEventsProps extends SectionProps {
-  userData?: {
-    zodiacSign: string;
-    location?: {
-      latitude: number;
-      longitude: number;
-    };
+  location?: {
+    latitude: number;
+    longitude: number;
   };
 }
 
 type FilterType = 'all' | 'high_impact' | 'affecting_me' | 'upcoming';
 
 const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
-  userData = { zodiacSign: 'scorpio' },
+  userData,
 }) => {
   // State Management
   const [events, setEvents] = useState<CelestialEvent[]>([]);
@@ -71,7 +67,7 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
         setIsLoading(true);
       }
 
-      const upcomingEvents = await celestialService.getUpcomingEvents();
+      const upcomingEvents = await CelestialEventsService.getUpcomingEvents();
       setEvents(upcomingEvents);
       applyFilter(upcomingEvents, activeFilter);
     } catch (error) {
@@ -166,7 +162,11 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
   };
 
   const getEventTypeColor = (type: string) => {
-    return CosmicTheme.colors[type as keyof typeof CosmicTheme.colors] || CosmicTheme.colors.cosmicPurple;
+    const color = CosmicTheme.colors[type as keyof typeof CosmicTheme.colors] || CosmicTheme.colors.cosmicPurple;
+    return {
+      primary: color,
+      secondary: color,
+    };
   };
 
   const getImpactLevelColor = (level: string) => {
@@ -347,7 +347,7 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={CosmicTheme.gradients.stellar}
+          colors={CosmicTheme.gradients.stellar as any}
           style={styles.fabGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -387,7 +387,7 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
                   colors={[
                     getEventTypeColor(selectedEvent.type).primary,
                     getEventTypeColor(selectedEvent.type).secondary,
-                  ]}
+                  ] as any}
                   style={styles.modalHeaderGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -415,7 +415,7 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
                     <Text style={styles.eventInfoLabel}>Type</Text>
                     <View style={[
                       styles.eventTypeBadge,
-                      { backgroundColor: getEventTypeColor(selectedEvent.type).primary }
+                      { backgroundColor: getEventTypeColor(selectedEvent.type).primary as any }
                     ]}>
                       <Text style={styles.eventTypeText}>
                         {selectedEvent.type.toUpperCase()}
@@ -496,7 +496,7 @@ const CosmicCelestialEvents: React.FC<CosmicCelestialEventsProps> = ({
                     onPress={() => addToCalendar(selectedEvent)}
                   >
                     <LinearGradient
-                      colors={CosmicTheme.gradients.stellar}
+                      colors={CosmicTheme.gradients.stellar as any}
                       style={styles.calendarButtonGradient}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}

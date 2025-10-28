@@ -1,107 +1,338 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { AuthService } from '../services/auth';
-import TestScreen from '../screens/TestScreen';
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Animated } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import OnboardingScreen from '../screens/OnboardingScreen';
-import MainAppScreen from '../screens/MainAppScreen';
-import AIChatScreen from '../screens/AIChatScreen';
+import HomeScreen from '../screens/HomeScreen';
 import LandingScreen from '../screens/LandingScreen';
-import PreviewHubScreen from '../screens/PreviewHubScreen';
+import LoginSignupScreen from '../screens/LoginSignupScreen';
+import SplashScreen from '../screens/SplashScreen';
+import LoadingScreen from '../screens/LoadingScreen';
+import PaywallScreen from '../screens/PaywallScreen';
+import { AuthService } from '../services/auth';
+import { SupabaseService } from '../services/supabase';
+import { supabase } from '../services/supabase';
+import type { OnboardingData } from '../screens/onboarding/types';
+import { UserProvider, useUser } from '../contexts/UserContext';
 
-type AppState = 'landing' | 'loading' | 'unauthenticated' | 'onboarding' | 'authenticated' | 'ai-chat' | 'preview-hub';
+type AppState = 'splash' | 'landing' | 'onboarding' | 'login' | 'loading' | 'paywall' | 'authenticated';
 
-export default function AppNavigator() {
-  const [appState, setAppState] = useState<AppState>('landing');
+// Inner component that has access to UserContext
+function AppNavigatorInner() {
+  const [appState, setAppState] = useState<AppState>('splash');
+  const [temporaryOnboardingData, setTemporaryOnboardingData] = useState<OnboardingData | null>(null);
+  const [loadingFromOnboarding, setLoadingFromOnboarding] = useState<boolean>(false);
+  const [onboardingStartStep, setOnboardingStartStep] = useState<number>(1);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
+  const [cameFromOnboarding, setCameFromOnboarding] = useState<boolean>(false);
+  const [isCheckingUserStatus, setIsCheckingUserStatus] = useState<boolean>(false);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  
+  // Get user data from UserContext
+  const { user, isLoading: userLoading } = useUser();
 
+  // Check user status immediately when component mounts
+  // This will determine the correct screen to show after splash
   useEffect(() => {
-    // Prepare auth subscription immediately
+    let isMounted = true;
+    
+    const initializeApp = async () => {
+      try {
+        await checkUserStatus();
+      } catch (error) {
+        console.log('Error during app initialization:', error);
+      }
+    };
+    
+    if (isMounted) {
+      initializeApp();
+    }
+    
     // Listen for auth state changes
-    const { data: { subscription } } = AuthService.onAuthChanged(async (event, session) => {
-      console.log('Auth state changed in navigator:', event);
-      await checkAuthState();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email || 'no user');
+      if (isMounted) {
+        // Re-check user status when auth state changes
+        checkUserStatus();
+      }
     });
-
+    
     return () => {
-      subscription?.unsubscribe();
+      isMounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 
-  const checkAuthState = async () => {
+  // Update authentication state when user data changes
+  useEffect(() => {
+    if (user) {
+      console.log('User data updated - isPremium:', user.isPremium, 'hasCompleteProfile:', user.hasCompleteProfile);
+      setIsPremium(user.isPremium);
+      setHasCompletedOnboarding(user.hasCompleteProfile);
+    }
+  }, [user]);
+
+  const checkUserStatus = async () => {
+    // Prevent multiple simultaneous checks
+    if (isCheckingUserStatus) {
+      return;
+    }
+    
+    setIsCheckingUserStatus(true);
+    
     try {
-      console.log('Checking auth state...');
+      // First, try to get the current session from Supabase directly
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      // Check if user is authenticated
-      const user = await AuthService.getCurrentUser();
-      console.log('Current user:', user?.email || 'No user');
-      
-      if (!user) {
-        console.log('No user found, setting state to unauthenticated');
-        setAppState('unauthenticated');
+      if (sessionError) {
+        console.log('Session error:', sessionError.message);
+        setIsAuthenticated(false);
+        setIsPremium(false);
+        setHasCompletedOnboarding(false);
         return;
       }
-
-      // Check if user has completed onboarding
-      console.log('Checking onboarding status...');
-      const hasCompletedOnboarding = await AuthService.hasCompletedOnboarding();
-      console.log('Has completed onboarding:', hasCompletedOnboarding);
       
-      if (hasCompletedOnboarding) {
-        console.log('User has completed onboarding, setting state to authenticated');
-        setAppState('authenticated');
-      } else {
-        console.log('User needs onboarding, setting state to onboarding');
-        setAppState('onboarding');
+      if (!session?.user) {
+        console.log('No active session found');
+        setIsAuthenticated(false);
+        setIsPremium(false);
+        setHasCompletedOnboarding(false);
+        return;
       }
+      
+      console.log('Active session found for user:', session.user.email);
+      setIsAuthenticated(true);
+      
+      // Use UserContext data if available, otherwise check profile
+      if (user) {
+        console.log('Using UserContext data - isPremium:', user.isPremium, 'hasCompleteProfile:', user.hasCompleteProfile);
+        setIsPremium(user.isPremium);
+        setHasCompletedOnboarding(user.hasCompleteProfile);
+      } else {
+        // Fallback: Check if user has completed onboarding (has profile)
+        try {
+          const hasProfile = await AuthService.hasCompletedOnboarding();
+          setHasCompletedOnboarding(hasProfile);
+          
+          if (hasProfile) {
+            // User is authenticated and has profile, fetch full profile to check premium status
+            const profile = await AuthService.getCurrentUserProfile();
+            const userPremium = profile?.subscription_status === 'premium';
+            setIsPremium(userPremium);
+            console.log('User premium status from profile:', userPremium);
+          }
+        } catch (profileError) {
+          console.log('Error checking profile:', profileError);
+          // If profile check fails, assume no profile
+          setHasCompletedOnboarding(false);
+          setIsPremium(false);
+        }
+      }
+      
     } catch (error) {
-      console.error('Error checking auth state:', error);
-      setAppState('unauthenticated');
+      console.log('Error in checkUserStatus:', error);
+      // Handle all errors gracefully - default to unauthenticated state
+      setIsAuthenticated(false);
+      setIsPremium(false);
+      setHasCompletedOnboarding(false);
+    } finally {
+      setIsCheckingUserStatus(false);
     }
   };
 
-  const handleLandingComplete = async () => {
-    setAppState('loading');
-    await checkAuthState();
+  const handleSplashComplete = () => {
+    // Create a smooth transition with a brief fade
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      // Navigate to the correct screen after fade
+      if (isAuthenticated && !hasCompletedOnboarding) {
+        setAppState('onboarding');
+      } else if (isAuthenticated && hasCompletedOnboarding && isPremium) {
+        setAppState('authenticated');
+      } else if (isAuthenticated && hasCompletedOnboarding && !isPremium) {
+        setAppState('paywall');
+      } else {
+        setAppState('landing');
+      }
+      
+      // Fade back in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
+  const handleGetStarted = () => {
+    setOnboardingStartStep(1); // Start from Step 1 for new users
+    setAppState('onboarding');
+  };
+
+  const handleBackToOnboardingStep4 = () => {
+    setOnboardingStartStep(5); // Start from Step 5 when coming back from login
+    setAppState('onboarding');
+  };
+
+  const handleLogin = () => {
+    setCameFromOnboarding(false); // Coming from landing page, not onboarding
+    setAppState('login');
+  };
+
+  const handleBackToLanding = () => {
+    setAppState('landing');
+  };
+
+  const handleOnboardingComplete = (data: OnboardingData) => {
+    // Store onboarding data ONLY in memory (temporary)
+    // Rule 1: Never save without account
+    setTemporaryOnboardingData(data);
+    
+    // Show loading screen for 3 seconds, then go to login
+    setLoadingFromOnboarding(true);
+    setCameFromOnboarding(true); // Track that we came from onboarding
+    setAppState('loading');
+    
+    setTimeout(() => {
+      setLoadingFromOnboarding(false);
+      setAppState('login');
+    }, 3000);
+  };
+
+  const handleLoginSuccess = async () => {
+    // Show loading screen while saving data
+    setAppState('loading');
+    
+    try {
+      // Rule 2: Save only after login success
+      if (temporaryOnboardingData) {
+        // Save onboarding data to Supabase
+        const success = await AuthService.saveOnboardingData(temporaryOnboardingData);
+        
+        if (success) {
+          setTemporaryOnboardingData(null); // Clear temporary data after saving
+        }
+      }
+      
+      // Check premium status after saving data
+      // TODO: Check if user is premium
+      // For now, assume user is not premium
+      setIsAuthenticated(true);
+      setIsPremium(false);
+      setAppState('paywall');
+    } catch (error) {
+      // Handle error appropriately
+      setAppState('paywall'); // Fallback to paywall
+    }
+  };
+
+  const handlePaywallComplete = () => {
+    setIsPremium(true);
+    setAppState('authenticated');
+  };
+
+  const handleAccountDeleted = () => {
+    // Reset all authentication state
+    setIsAuthenticated(false);
+    setIsPremium(false);
+    setTemporaryOnboardingData(null);
+    // Navigate to landing page
+    setAppState('landing');
+  };
+
+  // Handle app state changes (app going to background, etc.)
+  useEffect(() => {
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'background' || nextAppState === 'inactive') {
+        // If user exits app before creating account, clear temporary data
+        if (appState === 'login' && temporaryOnboardingData) {
+          setTemporaryOnboardingData(null);
+        }
+      }
+    };
+
+    // TODO: Add AppState listener
+    // AppState.addEventListener('change', handleAppStateChange);
+    
+    // return () => {
+    //   AppState.removeEventListener('change', handleAppStateChange);
+    // };
+  }, [appState, temporaryOnboardingData]);
+
   const renderCurrentScreen = () => {
+    // Only log state changes, not every render
+    // console.log('AppNavigator: Current appState is:', appState);
     switch (appState) {
-      case 'landing':
-        return <LandingScreen onAnimationComplete={handleLandingComplete} />;
-      case 'loading':
+      case 'splash':
         return (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading...</Text>
-          </View>
+          <SplashScreen 
+            onFinish={handleSplashComplete}
+            autoTransition={true}
+          />
         );
-      case 'unauthenticated':
+      case 'landing':
         return (
-          <TestScreen 
-            onNavigateToChat={() => setAppState('ai-chat')} 
-            onOpenPreviewHub={() => setAppState('preview-hub')}
+          <LandingScreen 
+            onGetStarted={handleGetStarted}
+            onLogin={handleLogin}
+          />
+        );
+      case 'onboarding':
+        return <OnboardingScreen onComplete={handleOnboardingComplete} onBackToLanding={handleBackToLanding} startStep={onboardingStartStep} initialData={temporaryOnboardingData} />;
+      
+      case 'login':
+        return (
+          <LoginSignupScreen 
+            onBack={cameFromOnboarding ? handleBackToOnboardingStep4 : handleBackToLanding}
+            onLoginSuccess={handleLoginSuccess}
           />
         );
       
-      case 'onboarding':
-        return <OnboardingScreen onComplete={() => setAppState('authenticated')} />;
+      case 'loading':
+        return (
+          <LoadingScreen 
+            message={loadingFromOnboarding ? "Preparing your cosmic journey..." : "Creating your cosmic profile..."} 
+            onComplete={loadingFromOnboarding ? undefined : handlePaywallComplete}
+          />
+        );
+      
+      case 'paywall':
+        return (
+          <PaywallScreen 
+            onStartTrial={handlePaywallComplete}
+          />
+        );
       
       case 'authenticated':
-        return <MainAppScreen onNavigateToChat={() => setAppState('ai-chat')} />;
-      
-      case 'ai-chat':
-        return <AIChatScreen onGoBack={() => setAppState('authenticated')} />;
-      
-      case 'preview-hub':
-        return <PreviewHubScreen onClose={() => setAppState('unauthenticated')} />;
+        return (
+          <HomeScreen onAccountDeleted={handleAccountDeleted} onLogout={handleAccountDeleted} />
+        );
       
       default:
-        return <TestScreen onNavigateToChat={() => setAppState('ai-chat')} />;
+        return (
+          <SplashScreen 
+            onFinish={handleSplashComplete}
+            autoTransition={true}
+          />
+        );
     }
   };
 
-  return renderCurrentScreen();
+  return (
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      {renderCurrentScreen()}
+    </Animated.View>
+  );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -113,3 +344,12 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
+
+// Main AppNavigator component that provides UserContext
+export default function AppNavigator() {
+  return (
+    <UserProvider>
+      <AppNavigatorInner />
+    </UserProvider>
+  );
+}

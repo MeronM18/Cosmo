@@ -339,6 +339,8 @@ export default function AIChatScreen({ onGoBack }: AIChatScreenProps) {
           placeholderTextColor="#999"
           multiline
           maxLength={500}
+          allowFontScaling={true}
+          maxFontSizeMultiplier={1.3}
           onSubmitEditing={sendMessage}
           editable={!isLoading}
         />

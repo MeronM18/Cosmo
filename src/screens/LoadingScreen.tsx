@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, Dimensions, TouchableOpacity, Text } from 'react-native';
-import LottieView from 'lottie-react-native';
+const LottieView = require('lottie-react-native').default;
 import { AppColors } from '../theme/appTheme';
 import Stars from './onboarding/components/Stars';
 
@@ -9,13 +9,11 @@ const { width, height } = Dimensions.get('window');
 interface LoadingScreenProps {
   message?: string;
   onComplete?: () => void;
-  onClose?: () => void;
 }
 
 const LoadingScreen: React.FC<LoadingScreenProps> = ({ 
   message = "Loading...", 
-  onComplete,
-  onClose 
+  onComplete
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -43,13 +41,6 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({
       {/* Background Stars */}
       <Stars count={60} />
       
-      {/* X Button */}
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={onClose}
-      >
-        <Text style={styles.closeButtonText}>✕</Text>
-      </TouchableOpacity>
       
       <Animated.View 
         style={[
@@ -95,23 +86,6 @@ const styles = StyleSheet.create({
   lottieAnimation: {
     width: 300,
     height: 300,
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
   },
 });
 

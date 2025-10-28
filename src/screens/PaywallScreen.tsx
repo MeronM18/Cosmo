@@ -1,16 +1,18 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Linking, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Animated, Linking, Image, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Cinzel_700Bold, Cinzel_400Regular } from '@expo-google-fonts/cinzel';
 import * as Haptics from 'expo-haptics';
 import { AppColors } from '../theme/appTheme';
+import { RevenueCatService } from '../services/revenueCat';
+import Purchases from 'react-native-purchases';
+import { logger } from '../utils/logger';
 
 const { width } = Dimensions.get('window');
 
-type PlanKey = 'free' | 'weekly' | 'yearly';
+type PlanKey = 'trial' | 'weekly' | 'yearly';
 
 interface PaywallScreenProps {
-  onClose?: () => void;
   onStartTrial?: (plan: PlanKey) => void;
 }
 
@@ -47,8 +49,8 @@ const StarField: React.FC = () => {
   );
 };
 
-const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) => {
-  const [selected, setSelected] = useState<PlanKey>('free');
+const PaywallScreen: React.FC<PaywallScreenProps> = ({ onStartTrial }) => {
+  const [selected, setSelected] = useState<PlanKey>('trial');
   const [fadeAnim] = useState(new Animated.Value(1));
   const [slideAnim] = useState(new Animated.Value(0));
   const [scaleAnim] = useState(new Animated.Value(1));
@@ -60,13 +62,56 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
     Cinzel_400Regular,
   });
 
+  // Purchase flow state
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [offerings, setOfferings] = useState<any>(null);
+  const [purchaseError, setPurchaseError] = useState<string | null>(null);
+
+  // Initialize RevenueCat and load offerings
+  useEffect(() => {
+    const initializePaywall = async () => {
+      try {
+        await RevenueCatService.initialize();
+        const offeringsData = await RevenueCatService.getOfferings();
+        setOfferings(offeringsData);
+      } catch (error) {
+        // Silently handle RevenueCat errors - use mock data instead
+        logger.error('Failed to initialize RevenueCat:', error);
+        setOfferings({
+          current: {
+            availablePackages: [
+              {
+                identifier: 'cosmo_weekly',
+                product: {
+                  title: 'Weekly Premium',
+                  priceString: '$4.99',
+                  identifier: 'cosmo_weekly'
+                }
+              },
+              {
+                identifier: 'cosmo_yearly',
+                product: {
+                  title: 'Yearly Premium',
+                  priceString: '$49.99',
+                  identifier: 'cosmo_yearly'
+                }
+              }
+            ]
+          }
+        });
+      }
+    };
+
+    initializePaywall();
+  }, []);
+
   // Initialize item animations on mount
   useEffect(() => {
-    const staggerDelay = selected === 'free' ? 50 : 30;
+    const staggerDelay = 30;
     itemAnimations.forEach((anim, index) => {
       Animated.timing(anim, {
         toValue: 1,
-        duration: selected === 'free' ? 200 : 150,
+        duration: 150,
         delay: index * staggerDelay,
         useNativeDriver: true
       }).start();
@@ -123,9 +168,9 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
           useNativeDriver: true 
         })
       ]).start(() => {
-        // Staggered animation for items - faster for weekly/yearly
-        const staggerDelay = plan === 'free' ? 50 : 30;
-        const itemDuration = plan === 'free' ? 200 : 150;
+        // Staggered animation for items
+        const staggerDelay = 30;
+        const itemDuration = 150;
         itemAnimations.forEach((anim, index) => {
           Animated.timing(anim, {
             toValue: 1,
@@ -138,6 +183,113 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
     });
   };
 
+  const handlePurchase = async () => {
+    if (isPurchasing) return;
+
+    setIsPurchasing(true);
+    setPurchaseError(null);
+
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+      // Handle trial option differently
+      if (selected === 'trial') {
+        // For trial, we'll start the trial and then let user choose a plan
+        console.log('Starting free trial...');
+        
+        // Success haptic feedback
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        
+        // Call the success callback for trial
+        onStartTrial?.(selected);
+        return;
+      }
+
+      // Get the package for the selected plan
+      const packageToPurchase = offerings?.current?.availablePackages.find(
+        (pkg: any) => pkg.identifier === `cosmo_${selected}`
+      );
+
+      if (!packageToPurchase) {
+        throw new Error(`Subscription plan not found: cosmo_${selected}`);
+      }
+
+      console.log('Starting purchase for package:', packageToPurchase.identifier);
+
+      // Make the purchase
+      const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
+
+      // Check if purchase was successful
+      if (customerInfo.entitlements.active['premium']) {
+        console.log('Purchase successful! User now has premium access.');
+        
+        // Success haptic feedback
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        
+        // Call the success callback
+        onStartTrial?.(selected);
+      } else {
+        throw new Error('Purchase completed but premium access not granted');
+      }
+
+    } catch (error: any) {
+      logger.error('Purchase failed:', error);
+      
+      // Error haptic feedback
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
+      // Handle specific error types
+      if (error.code === 'PURCHASES_ERROR_PURCHASE_CANCELLED') {
+        setPurchaseError('Purchase was cancelled');
+      } else if (error.code === 'PURCHASES_ERROR_PAYMENT_PENDING') {
+        setPurchaseError('Payment is pending. Please check your payment method.');
+      } else if (error.code === 'PURCHASES_ERROR_PRODUCT_NOT_AVAILABLE_FOR_PURCHASE') {
+        setPurchaseError('This subscription is not available for purchase.');
+      } else {
+        setPurchaseError(error.message || 'Purchase failed. Please try again.');
+      }
+
+      // Show error alert
+      Alert.alert(
+        'Purchase Failed',
+        error.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    try {
+      setIsPurchasing(true);
+      const customerInfo = await Purchases.restorePurchases();
+      
+      if (customerInfo.entitlements.active['premium']) {
+        Alert.alert(
+          'Purchases Restored',
+          'Your premium subscription has been restored!',
+          [{ text: 'OK', onPress: () => onStartTrial?.(selected) }]
+        );
+      } else {
+        Alert.alert(
+          'No Purchases Found',
+          'No active subscriptions were found to restore.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error: any) {
+      logger.error('Restore failed:', error);
+      Alert.alert(
+        'Restore Failed',
+        'Failed to restore purchases. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Background Image */}
@@ -145,15 +297,9 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
         source={require('../../assets/paywallbackground.png')} 
         style={styles.backgroundImage}
         resizeMode="cover"
+        fadeDuration={0}
       />
       
-      {/* X Button */}
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={onClose}
-      >
-        <Text style={styles.closeButtonText}>✕</Text>
-      </TouchableOpacity>
       
       {/* Dark Gradient Overlay for Bottom Half */}
       <LinearGradient
@@ -166,21 +312,19 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
 
 
       {/* Title */}
-      <View style={[styles.titleWrap, { paddingTop: 80 }]}>
+      <View style={[styles.titleWrap, { paddingTop: 100 }]}>
         <Text style={[
           styles.title,
           fontsLoaded && { fontFamily: 'Cinzel_700Bold' }
         ]}>
-          {selected === 'free' ? 'Start My 3-Day Free Trial' : 'Unlock Cosmo'}
+          Unlock Cosmo
         </Text>
-        {(selected === 'weekly' || selected === 'yearly') && (
-          <Text style={[
-            styles.subtitle,
-            fontsLoaded && { fontFamily: 'Cinzel_400Regular' }
-          ]}>
-            Premium cosmic insights
-          </Text>
-        )}
+        <Text style={[
+          styles.subtitle,
+          fontsLoaded && { fontFamily: 'Cinzel_400Regular' }
+        ]}>
+          Premium cosmic insights
+        </Text>
       </View>
 
       {/* Animated Content Area - Fixed height container */}
@@ -195,6 +339,72 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
         }
       ]}>
         <View style={styles.contentContainer}>
+          {/* Features List - Show when trial is selected */}
+          {selected === 'trial' && (
+            <View style={styles.featuresList}>
+              <Animated.View style={[
+                styles.featureItem,
+                {
+                  opacity: itemAnimations[0],
+                  transform: [
+                    { translateY: itemAnimations[0].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0]
+                    })}
+                  ]
+                }
+              ]}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Try all premium features for free</Text>
+              </Animated.View>
+              <Animated.View style={[
+                styles.featureItem,
+                {
+                  opacity: itemAnimations[1],
+                  transform: [
+                    { translateY: itemAnimations[1].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0]
+                    })}
+                  ]
+                }
+              ]}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>No commitment required</Text>
+              </Animated.View>
+              <Animated.View style={[
+                styles.featureItem,
+                {
+                  opacity: itemAnimations[2],
+                  transform: [
+                    { translateY: itemAnimations[2].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0]
+                    })}
+                  ]
+                }
+              ]}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Cancel anytime during trial</Text>
+              </Animated.View>
+              <Animated.View style={[
+                styles.featureItem,
+                {
+                  opacity: itemAnimations[3],
+                  transform: [
+                    { translateY: itemAnimations[3].interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [20, 0]
+                    })}
+                  ]
+                }
+              ]}>
+                <Text style={styles.checkmark}>✓</Text>
+                <Text style={styles.featureText}>Full access to cosmic insights</Text>
+              </Animated.View>
+            </View>
+          )}
+
           {/* Features List - Show when weekly is selected */}
           {selected === 'weekly' && (
             <View style={styles.featuresList}>
@@ -291,87 +501,6 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
             </View>
           )}
 
-          {/* Enhanced Timeline - Show when free trial is selected */}
-          {selected === 'free' && (
-            <View style={styles.enhancedTimeline}>
-              
-              <View style={styles.timelineContainer}>
-                {/* Progress Bar Background */}
-                <View style={styles.progressBarBackground} />
-                
-                {/* Progress Fill */}
-                <LinearGradient
-                  colors={['#3B82F6', '#A855F7', '#EF4444']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}
-                  style={styles.progressBarFill}
-                />
-                
-              <Animated.View style={[
-                styles.timelineItem,
-                {
-                  opacity: itemAnimations[0],
-                  transform: [
-                    { translateY: itemAnimations[0].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0]
-                    })}
-                  ]
-                }
-              ]}>
-                <View style={[styles.timelineIcon, styles.timelineIconToday]}>
-                  <Image source={require('../../assets/sparkle.png')} style={styles.timelineIconImage} />
-                </View>
-                <View style={styles.timelineTextWrap}>
-                  <Text style={styles.timelineItemTitle}>Today</Text>
-                  <Text style={styles.timelineItemText}>Unlock unlimited horoscopes, birth chart analysis, and cosmic insights</Text>
-                </View>
-              </Animated.View>
-              
-              <Animated.View style={[
-                styles.timelineItem,
-                {
-                  opacity: itemAnimations[1],
-                  transform: [
-                    { translateY: itemAnimations[1].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0]
-                    })}
-                  ]
-                }
-              ]}>
-                <View style={[styles.timelineIcon, styles.timelineIconReminder]}>
-                  <Image source={require('../../assets/bell.png')} style={styles.timelineIconImage} />
-                </View>
-                <View style={styles.timelineTextWrap}>
-                  <Text style={styles.timelineItemTitle}>Day 2</Text>
-                  <Text style={styles.timelineItemText}>We'll send you a notification before billing starts</Text>
-                </View>
-              </Animated.View>
-              
-              <Animated.View style={[
-                styles.timelineItem,
-                {
-                  opacity: itemAnimations[2],
-                  transform: [
-                    { translateY: itemAnimations[2].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0]
-                    })}
-                  ]
-                }
-              ]}>
-                <View style={[styles.timelineIcon, styles.timelineIconBilling]}>
-                  <Image source={require('../../assets/credit-card.png')} style={styles.timelineIconImage} />
-                </View>
-                <View style={styles.timelineTextWrap}>
-                  <Text style={styles.timelineItemTitle}>Day 3</Text>
-                  <Text style={styles.timelineItemText}>You'll be charged and can cancel anytime</Text>
-                </View>
-              </Animated.View>
-              </View>
-            </View>
-          )}
 
           {/* Yearly content - Show when yearly is selected */}
           {selected === 'yearly' && (
@@ -475,19 +604,19 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
       <View style={styles.fixedBottomSection}>
         {/* All Plans in consistent layout */}
         <View style={styles.plansContainer}>
-          {/* Free Trial Card */}
+          {/* Free Trial Option */}
           <TouchableOpacity
-            style={[styles.planCard, styles.freeTrialCard, selected === 'free' && styles.planSelected]}
-            onPress={() => handlePlanChange('free')}
+            style={[styles.trialCard, selected === 'trial' && styles.trialSelected]}
+            onPress={() => handlePlanChange('trial')}
             activeOpacity={0.9}
           >
-            <View style={styles.planContent}>
-              <View style={styles.planText}>
-                <Text style={styles.planLabel}>Free Trial</Text>
-                <Text style={styles.planSubtext}>3 days free</Text>
+            <View style={styles.trialContent}>
+              <View style={styles.trialText}>
+                <Text style={styles.trialLabel}>1 Day Free Trial</Text>
+                <Text style={styles.trialSubtext}>Then $49.99 annually</Text>
               </View>
-              <View style={[styles.radioCircle, selected === 'free' && styles.radioSelected]}>
-                {selected === 'free' && <Text style={styles.checkmark}>✓</Text>}
+              <View style={[styles.radioCircle, selected === 'trial' && styles.radioSelected]}>
+                {selected === 'trial' && <Text style={styles.checkmark}>✓</Text>}
               </View>
             </View>
           </TouchableOpacity>
@@ -537,31 +666,51 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onClose, onStartTrial }) 
       <View style={styles.ctaWrap}>
         <TouchableOpacity
           activeOpacity={0.9}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            onStartTrial ? onStartTrial(selected) : undefined;
-          }}
-          style={styles.ctaButton}
+          onPress={handlePurchase}
+          style={[styles.ctaButton, isPurchasing && styles.ctaButtonDisabled]}
+          disabled={isPurchasing}
         >
           <LinearGradient
-            colors={[ '#A66CFF', '#6246EA' ]}
+            colors={isPurchasing ? ['#666', '#555'] : ['#A66CFF', '#6246EA']}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={styles.ctaGradient}
           >
-            <Text style={styles.ctaText}>
-              {selected === 'free' ? 'Start 3-Day Free Trial' : selected === 'weekly' ? 'Continue' : 'Continue'}
-            </Text>
+            {isPurchasing ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#FFF" size="small" />
+                <Text style={[styles.ctaText, { marginLeft: 8 }]}>Processing...</Text>
+              </View>
+            ) : (
+              <Text style={styles.ctaText}>
+                {selected === 'trial' ? 'Start Free Trial' : selected === 'weekly' ? 'Start Weekly Plan' : 'Start Yearly Plan'}
+              </Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
+        
+        {/* Error message */}
+        {purchaseError && (
+          <Text style={styles.errorText}>{purchaseError}</Text>
+        )}
+        
         <Text style={styles.ctaCaption}>
-          {selected === 'free' 
-            ? '3 days free, then $49.99/year. Cancel anytime.'
+          {selected === 'trial' 
+            ? 'Try free for 1 day, then $49.99 annually.' 
             : selected === 'weekly' 
-              ? 'Just $4.99 per week. Cancel anytime.' 
-              : 'Just $49.99 per year. Cancel anytime.'
+            ? 'Just $4.99 per week. Cancel anytime.' 
+            : 'Just $49.99 per year. Cancel anytime.'
           }
         </Text>
+        
+        {/* Restore purchases button */}
+        <TouchableOpacity
+          onPress={handleRestorePurchases}
+          style={styles.restoreButton}
+          disabled={isPurchasing}
+        >
+          <Text style={styles.restoreButtonText}>Restore Purchases</Text>
+        </TouchableOpacity>
       </View>
       </View>
 
@@ -587,7 +736,7 @@ const styles = StyleSheet.create({
   timeline: { marginTop: 24, marginHorizontal: 20, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 14, paddingVertical: 14, paddingHorizontal: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)' },
   timelineText: { color: 'rgba(255,255,255,0.8)' },
   timelineDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.12)', marginVertical: 10 },
-  contentArea: { flex: 1, paddingTop: 20 },
+  contentArea: { flex: 1, paddingTop: 40 },
   contentContainer: { minHeight: 280, justifyContent: 'center' },
   enhancedTimeline: { marginTop: 24, marginHorizontal: 20, paddingHorizontal: 10 },
   timelineTitle: { color: '#FFF', fontSize: 24, fontWeight: '800', textAlign: 'center', marginBottom: 30 },
@@ -619,10 +768,31 @@ const styles = StyleSheet.create({
   timelineTextWrap: { flex: 1, marginTop: 4 },
   timelineItemTitle: { color: '#FFF', fontSize: 16, fontWeight: '700', marginBottom: 4 },
   timelineItemText: { color: 'rgba(255,255,255,0.8)', fontSize: 14, lineHeight: 20 },
-  fixedBottomSection: { position: 'absolute', bottom: 10, left: 0, right: 0, paddingBottom: 40 },
+  fixedBottomSection: { position: 'absolute', bottom: -25, left: 0, right: 0, paddingBottom: 40 },
   plansContainer: { paddingHorizontal: 20 },
-  freeTrialCard: { marginBottom: 12, height: 60 },
-  planRow: { flexDirection: 'row', gap: 12, marginTop: 0 },
+  planRow: { flexDirection: 'row', gap: 12, marginTop: 12 },
+  trialCard: { 
+    backgroundColor: 'rgba(255,255,255,0.12)', 
+    borderRadius: 14, 
+    padding: 16, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.18)', 
+    height: 70, 
+    justifyContent: 'center',
+    marginBottom: 8
+  },
+  trialSelected: { 
+    borderColor: '#A66CFF', 
+    shadowColor: '#A66CFF', 
+    shadowOpacity: 0.35, 
+    shadowRadius: 12, 
+    shadowOffset: { width: 0, height: 8 }, 
+    backgroundColor: 'rgba(166,108,255,0.18)' 
+  },
+  trialContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  trialText: { flex: 1 },
+  trialLabel: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  trialSubtext: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 2 },
   planCard: { flex: 1, backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 14, padding: 16, borderWidth: 2, borderColor: 'rgba(255,255,255,0.18)', height: 95, justifyContent: 'center' },
   planCardWeekly: { flex:  0.78},
   planCardYearly: { flex: 1 },
@@ -667,29 +837,17 @@ const styles = StyleSheet.create({
   yearlyFeatureText: { color: '#FFF', fontSize: 18, marginLeft: 12, flex: 1, fontWeight: '600' },
   ctaWrap: { marginTop: 22, paddingHorizontal: 20 },
   ctaButton: { borderRadius: 16, overflow: 'hidden' },
+  ctaButtonDisabled: { opacity: 0.7 },
   ctaGradient: { paddingVertical: 16, alignItems: 'center', justifyContent: 'center' },
   ctaText: { color: '#FFF', fontSize: 18, fontWeight: '800' },
   ctaCaption: { color: 'rgba(255,255,255,0.75)', textAlign: 'center', marginTop: 10 },
+  loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  errorText: { color: '#FF6B6B', textAlign: 'center', marginTop: 8, fontSize: 14 },
+  restoreButton: { marginTop: 16, paddingVertical: 12 },
+  restoreButtonText: { color: 'rgba(255,255,255,0.6)', textAlign: 'center', fontSize: 14, textDecorationLine: 'underline' },
   footer: { marginTop: 18, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
   footerLink: { color: 'rgba(255,255,255,0.65)' },
   dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.35)' },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
 });
 
 export default PaywallScreen;

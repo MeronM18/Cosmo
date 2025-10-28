@@ -47,6 +47,7 @@ const Device = {
 };
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PersonalizedUser } from '../contexts/UserContext';
 
 import { Platform } from 'react-native';
 import { AnalyticsService } from './trackingService';
@@ -353,7 +354,7 @@ export class NotificationService {
       preview: string;
       mood: string;
     },
-    userId: string
+    user: PersonalizedUser
   ): Promise<boolean> {
     try {
       await this.initialize();
@@ -363,13 +364,15 @@ export class NotificationService {
 
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${horoscope.title} ${moodEmoji}`,
+          title: `${user.fullName}, your ${user.zodiacSign} horoscope is ready! ${moodEmoji}`,
           body: horoscope.preview,
           data: {
             action: 'open_horoscope',
-            userId,
+            userId: user.id,
             horoscope,
-            type: 'personalized'
+            type: 'personalized',
+            userZodiac: user.zodiacSign,
+            userName: user.fullName
           },
           sound: 'default',
         },
@@ -399,6 +402,82 @@ export class NotificationService {
       await Notifications.cancelAllScheduledNotificationsAsync();
     } catch (error) {
       console.error('Error cancelling all notifications:', error);
+    }
+  }
+
+  // Schedule daily personalized horoscope notifications
+  static async scheduleDailyHoroscopeNotification(user: PersonalizedUser): Promise<boolean> {
+    try {
+      await this.initialize();
+
+      const notificationId = `daily_horoscope_${user.id}`;
+      
+      // Schedule for 9 AM daily
+      const trigger = {
+        hour: 9,
+        minute: 0,
+        repeats: true,
+      };
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Good morning, ${user.fullName}! 🌟`,
+          body: `Your ${user.zodiacSign} horoscope is ready to guide your day`,
+          data: {
+            action: 'open_horoscope',
+            userId: user.id,
+            type: 'daily_horoscope',
+            userZodiac: user.zodiacSign,
+            userName: user.fullName
+          },
+          sound: 'default',
+        },
+        trigger,
+        identifier: notificationId,
+      });
+
+      console.log(`Daily horoscope notification scheduled for ${user.fullName} (${user.zodiacSign})`);
+      return true;
+    } catch (error) {
+      console.error('Error scheduling daily horoscope notification:', error);
+      return false;
+    }
+  }
+
+  // Schedule transit alerts for user's zodiac sign
+  static async scheduleTransitAlert(user: PersonalizedUser, transitInfo: {
+    planet: string;
+    sign: string;
+    date: string;
+    description: string;
+  }): Promise<boolean> {
+    try {
+      await this.initialize();
+
+      const notificationId = `transit_${user.id}_${Date.now()}`;
+      
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Important transit for ${user.fullName}! ⭐`,
+          body: `${transitInfo.planet} enters ${transitInfo.sign} - ${transitInfo.description}`,
+          data: {
+            action: 'open_transits',
+            userId: user.id,
+            type: 'transit_alert',
+            userZodiac: user.zodiacSign,
+            userName: user.fullName,
+            transitInfo
+          },
+          sound: 'default',
+        },
+        trigger: null, // Send immediately
+        identifier: notificationId,
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error scheduling transit alert:', error);
+      return false;
     }
   }
 

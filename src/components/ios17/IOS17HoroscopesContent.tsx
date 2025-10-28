@@ -14,6 +14,7 @@ import {
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { iOS17Theme } from '../../theme/ios17Theme';
+import { getWordOfTheDay, WordOfTheDay } from '../../utils/wordOfTheDay';
 import IOS17HoroscopeCard from './IOS17HoroscopeCard';
 import IOS17SegmentedControl from './IOS17SegmentedControl';
 import IOS17LifeAreas from './IOS17LifeAreas';
@@ -48,6 +49,7 @@ interface IOS17HoroscopesContentProps {
 const IOS17HoroscopesContent: React.FC<IOS17HoroscopesContentProps> = ({ userData, onScroll }) => {
   // Simplified state management - no loading states
   const [selectedTimePeriod, setSelectedTimePeriod] = useState('Daily');
+  const [dynamicWordOfDay, setDynamicWordOfDay] = useState<WordOfTheDay | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [showReadingHistory, setShowReadingHistory] = useState(false);
   
@@ -57,6 +59,25 @@ const IOS17HoroscopesContent: React.FC<IOS17HoroscopesContentProps> = ({ userDat
 
   const timePeriods = ['Daily', 'Weekly', 'Yearly'];
 
+  // Fetch dynamic word of the day on mount
+  useEffect(() => {
+    const fetchDynamicWordOfDay = async () => {
+      try {
+        const word = await getWordOfTheDay();
+        setDynamicWordOfDay(word);
+      } catch (error) {
+        console.error('Failed to fetch word of the day:', error);
+        // Fallback to default
+        setDynamicWordOfDay({
+          word: 'Harmony',
+          category: 'cosmic',
+          definition: 'Perfect balance and peaceful coexistence'
+        });
+      }
+    };
+
+    fetchDynamicWordOfDay();
+  }, []);
 
   // No state subscriptions or initialization delays - render immediately
 
@@ -175,7 +196,7 @@ const IOS17HoroscopesContent: React.FC<IOS17HoroscopesContentProps> = ({ userDat
       luckyElements: zodiacLuckyElements,
       keyPlanets: ['Venus', 'Mercury'],
       mood: 'optimistic',
-      wordOfDay: 'Harmony'
+      wordOfDay: dynamicWordOfDay?.word || 'Harmony'
     };
 
     let mainText = '';
@@ -320,7 +341,7 @@ const IOS17HoroscopesContent: React.FC<IOS17HoroscopesContentProps> = ({ userDat
         </View>
 
         {/* Time Period Selector */}
-        <View style={styles.sectionSpacing}>
+        <View style={styles.timePeriodSpacing}>
           <IOS17SegmentedControl
             segments={timePeriods}
             selectedIndex={timePeriods.indexOf(selectedTimePeriod)}
@@ -440,6 +461,10 @@ const styles = StyleSheet.create({
   },
   sectionSpacing: {
     marginTop: iOS17Theme.spacing.lg,
+    marginBottom: iOS17Theme.spacing.lg,
+  },
+  timePeriodSpacing: {
+    marginTop: iOS17Theme.spacing.xs,
     marginBottom: iOS17Theme.spacing.lg,
   },
   lifeAreasSpacing: {

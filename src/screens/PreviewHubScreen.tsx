@@ -6,12 +6,13 @@ import OnboardingScreen from './OnboardingScreen';
 import PaywallScreen from './PaywallScreen';
 import LoadingScreen from './LoadingScreen';
 import HomeScreen from './HomeScreen';
+import LoginSignupScreen from './LoginSignupScreen';
 
 interface PreviewHubScreenProps {
   onClose?: () => void;
 }
 
-type Mode = 'menu' | 'landing' | 'splash' | 'onboarding' | 'paywall' | 'loading' | 'home';
+type Mode = 'menu' | 'landing' | 'splash' | 'onboarding' | 'paywall' | 'loading' | 'home' | 'login';
 
 export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
   const [mode, setMode] = useState<Mode>('menu');
@@ -19,14 +20,7 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
   if (mode === 'landing') {
     return (
       <View style={{ flex: 1 }}>
-        <LandingScreen onAnimationComplete={() => {}} />
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => setMode('menu')}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
+        <LandingScreen />
       </View>
     );
   }
@@ -35,13 +29,6 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
     return (
       <View style={{ flex: 1 }}>
         <SplashScreen autoTransition={false} />
-        <TouchableOpacity
-          style={styles.closeButton}
-          onPress={() => setMode('menu')}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -57,7 +44,7 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
   if (mode === 'paywall') {
     return (
       <View style={{ flex: 1 }}>
-        <PaywallScreen onClose={() => setMode('menu')} />
+        <PaywallScreen />
       </View>
     );
   }
@@ -68,7 +55,6 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
         <LoadingScreen 
           message="Loading your cosmic journey..." 
           onComplete={() => setMode('menu')}
-          onClose={() => setMode('menu')}
         />
       </View>
     );
@@ -77,7 +63,24 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
   if (mode === 'home') {
     return (
       <View style={{ flex: 1 }}>
-        <HomeScreen onClose={() => setMode('menu')} />
+        <HomeScreen 
+          onClose={() => setMode('menu')} 
+          onLogout={() => {
+            // Logout and return to preview hub menu
+            setMode('menu');
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (mode === 'login') {
+    return (
+      <View style={{ flex: 1 }}>
+        <LoginSignupScreen 
+          onBack={() => setMode('menu')}
+          onLoginSuccess={() => setMode('menu')}
+        />
       </View>
     );
   }
@@ -97,6 +100,9 @@ export default function PreviewHubScreen({ onClose }: PreviewHubScreenProps) {
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => setMode('landing')}>
           <Text style={styles.buttonText}>Landing</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => setMode('login')}>
+          <Text style={styles.buttonText}>Sign In/Login</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => setMode('onboarding')}>
           <Text style={styles.buttonText}>Onboarding</Text>

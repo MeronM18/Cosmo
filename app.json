@@ -19,7 +19,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.vengeanceintelligence.cosmo",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Cosmo uses your location to show astronomical information relevant to your position."
+        "NSLocationWhenInUseUsageDescription": "Cosmo uses your location to show astronomical information relevant to your position.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -37,6 +38,11 @@
       "expo-apple-authentication",
       "@react-native-google-signin/google-signin",
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "994ccee6-bb53-4620-a095-45b3d9b8add4"
+      }
+    }
   }
 }

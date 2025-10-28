@@ -47,7 +47,7 @@ export default function SplashScreen({ onFinish, autoTransition }: SplashScreenP
               const afterDoneId = setTimeout(() => {
                 StatusBar.setHidden(false, 'fade');
                 onFinish();
-              }, 1000);
+              }, 700);
               timeoutsRef.current.push(afterDoneId as unknown as number);
             }
           }

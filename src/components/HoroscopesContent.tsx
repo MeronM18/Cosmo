@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts, Cinzel_700Bold, Cinzel_400Regular } from '@expo-google-fonts/cinzel';
 import * as Haptics from 'expo-haptics';
 import { AppColors } from '../theme/appTheme';
+import { getWordOfTheDay, WordOfTheDay } from '../utils/wordOfTheDay';
 import BirthChartWidget from './BirthChartWidget';
 import TransitsDisplay from './TransitsDisplay';
 import EducationalAstrology from './EducationalAstrology';
@@ -29,6 +30,7 @@ import { StreakManager, MoodTracker, AchievementManager } from '../services/trac
 import { PremiumService } from '../services/premiumService';
 import { NotificationService } from '../services/notificationService';
 import { HoroscopeGenerator } from '../services/horoscopeGenerator';
+import { useUser, useUserZodiac } from '../contexts/UserContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,6 +53,10 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
     Cinzel_400Regular,
   });
 
+  // Use personalized user data from context
+  const { user } = useUser();
+  const { sign: userZodiacSign } = useUserZodiac();
+
   // State management
   const [state, setState] = useState<HoroscopesState>(horoscopesStateManager.getState());
   const [selectedTimePeriod, setSelectedTimePeriod] = useState('Today');
@@ -59,6 +65,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
   const [showAchievement, setShowAchievement] = useState<any>(null);
   const [showReadingHistory, setShowReadingHistory] = useState(false);
   const [useIOS17Design, setUseIOS17Design] = useState(true); // Toggle for iOS 17 design
+  const [dynamicWordOfDay, setDynamicWordOfDay] = useState<WordOfTheDay | null>(null);
   
   const scrollY = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
@@ -152,7 +159,24 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
   // Initialize data on mount
   useEffect(() => {
     initializeHoroscopesData();
+    fetchDynamicWordOfDay();
   }, []);
+
+  // Fetch dynamic word of the day
+  const fetchDynamicWordOfDay = async () => {
+    try {
+      const word = await getWordOfTheDay();
+      setDynamicWordOfDay(word);
+    } catch (error) {
+      console.error('Failed to fetch word of the day:', error);
+      // Fallback to default
+      setDynamicWordOfDay({
+        word: 'Harmony',
+        category: 'cosmic',
+        definition: 'Perfect balance and peaceful coexistence'
+      });
+    }
+  };
 
   // Auto-refresh daily content
   useEffect(() => {
@@ -194,7 +218,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
       const mockHoroscope = {
         id: 'mock-today',
         content: {
-          main: `The stars align in your favor today, ${state.user.zodiacSign}. Trust your intuition as it guides you toward meaningful connections and personal growth. Your emotional depth serves you well, allowing you to see beyond surface appearances.`,
+          main: `The stars align in your favor today, ${userZodiacSign || userData.zodiacSign}. Trust your intuition as it guides you toward meaningful connections and personal growth. Your emotional depth serves you well, allowing you to see beyond surface appearances.`,
           categories: {
             love: 'Your heart is open to new possibilities today. Trust your instincts in matters of the heart.',
             career: 'A new opportunity may present itself. Be ready to take action when the moment arrives.',
@@ -212,7 +236,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
           },
           keyPlanets: ['Venus', 'Mercury'],
           mood: 'optimistic',
-          wordOfDay: 'Harmony'
+          wordOfDay: dynamicWordOfDay?.word || 'Harmony'
         },
         metadata: {
           generatedAt: new Date(),
@@ -227,7 +251,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
       // Update reading streak
       let newAchievements: any[] = [];
       try {
-        const streakResult = await StreakManager.updateStreak(state.user.zodiacSign);
+        const streakResult = await StreakManager.updateStreak(userZodiacSign || userData.zodiacSign);
         horoscopesStateManager.updateTracking({ readingStreak: streakResult.streak });
         newAchievements = streakResult.newAchievements || [];
         console.log('✅ Streak updated successfully');
@@ -268,7 +292,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
       const mockHoroscope = {
         id: `mock-${periodKey}`,
         content: {
-          main: `The cosmic energies are particularly strong for ${periodKey} readings, ${state.user.zodiacSign}. The universe has special messages for you during this time period. Trust in the guidance that comes your way.`,
+          main: `The cosmic energies are particularly strong for ${periodKey} readings, ${userZodiacSign || userData.zodiacSign}. The universe has special messages for you during this time period. Trust in the guidance that comes your way.`,
           categories: {
             love: 'Your relationships are evolving beautifully. Trust the process.',
             career: 'New opportunities are on the horizon. Stay focused and ready.',
@@ -286,7 +310,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
           },
           keyPlanets: ['Jupiter', 'Saturn'],
           mood: 'hopeful',
-          wordOfDay: 'Transformation'
+          wordOfDay: dynamicWordOfDay?.word || 'Transformation'
         },
         metadata: {
           generatedAt: new Date(),
@@ -361,7 +385,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
   const handleMoodTracking = async (mood: number, accuracy: number) => {
     try {
       const { newAchievements, insights } = await MoodTracker.recordMood(
-        state.user.zodiacSign,
+        userZodiacSign || userData.zodiacSign,
         mood,
         accuracy,
         state.horoscopes.today?.id || ''
@@ -406,9 +430,9 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
         console.error('Error generating horoscope:', horoscopeError);
         // Create a fallback horoscope if generation fails
         newHoroscope = {
-          id: `horoscope_${state.user.zodiacSign}_today_${today.toISOString().split('T')[0]}`,
+          id: `horoscope_${userZodiacSign || userData.zodiacSign}_today_${today.toISOString().split('T')[0]}`,
           content: {
-            main: `Today brings cosmic energy that enhances your ${state.user.zodiacSign} nature. Trust your intuition and embrace the opportunities that come your way.`,
+            main: `Today brings cosmic energy that enhances your ${userZodiacSign || userData.zodiacSign} nature. Trust your intuition and embrace the opportunities that come your way.`,
             categories: {
               love: 'Your relationships benefit from open communication and understanding.',
               career: 'Professional opportunities align with your natural talents and ambitions.',
@@ -426,7 +450,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
             },
             keyPlanets: ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'],
             mood: 'optimistic',
-            wordOfDay: 'manifest'
+            wordOfDay: dynamicWordOfDay?.word || 'manifest'
           },
           metadata: {
             generatedAt: today,
@@ -438,7 +462,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
       }
 
       // Update streak using StreakManager
-      const { streak, newAchievements } = await StreakManager.updateStreak(state.user.zodiacSign);
+      const { streak, newAchievements } = await StreakManager.updateStreak(userZodiacSign || userData.zodiacSign);
       
       // Create completed reading record with the generated horoscope
       const completedReading: CompletedReading = {
@@ -562,7 +586,8 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
       <IOS17HoroscopesContent 
         userData={{
           ...userData,
-          zodiacSymbol: userData.zodiacSign // Use zodiac sign name as symbol since emojis were removed
+          zodiacSign: userZodiacSign || userData.zodiacSign,
+          zodiacSymbol: userZodiacSign || userData.zodiacSign // Use zodiac sign name as symbol since emojis were removed
         }}
         onScroll={onScroll}
       />
@@ -631,7 +656,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
           </Text>
           <View style={styles.zodiacBadge}>
             <Text style={[styles.zodiacText, fontsLoaded ? { fontFamily: 'Cinzel_400Regular' } : { fontFamily: 'System' }]}>
-              {userData.zodiacSign}
+              {userZodiacSign || userData.zodiacSign}
             </Text>
           </View>
         </View>
@@ -654,7 +679,7 @@ const HoroscopesContent: React.FC<HoroscopesContentProps> = ({ userData, onScrol
           <View style={styles.heroHeader}>
             <View style={styles.zodiacHeader}>
               <Text style={[styles.zodiacSignLarge, fontsLoaded ? { fontFamily: 'Cinzel_700Bold' } : { fontFamily: 'System' }]}>
-                {userData.zodiacSign}
+                {userZodiacSign || userData.zodiacSign}
               </Text>
             </View>
             <View style={styles.cosmicRating}>

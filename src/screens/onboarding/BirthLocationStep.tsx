@@ -1,15 +1,26 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
 import CosmicBackground from './components/CosmicBackground';
-import type { StepScreenProps } from './types';
+import type { StepScreenProps, OnboardingData } from './types';
 import { AppColors, Typography } from '../../theme/appTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import { Config } from '../../utils/constants';
 
-// Google Maps Places API configuration
-const GOOGLE_MAPS_API_KEY = 'AIzaSyA4kPoGd8_r2-h6ezkWPRemO6RafQCWF0Y';
-const PLACES_API_URL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';
+// GeoNames API configuration - Free 30k requests/day
+const GEONAMES_USERNAME = Config.geoNamesUsername;
+const GEONAMES_API_URL = 'http://api.geonames.org/searchJSON';
+
+interface GeoNamesPlace {
+  geonameId: number;
+  name: string;
+  countryName: string;
+  adminName1?: string; // state/province
+  lat: string;
+  lng: string;
+  population: number;
+}
 
 interface PlacePrediction {
   place_id: string;
@@ -64,15 +75,29 @@ const LoaderDots: React.FC = () => {
   );
 };
 
-export default function BirthLocationStep({ data, update, next, back }: StepScreenProps) {
+interface BirthLocationStepProps extends StepScreenProps {
+  onFinish?: (finalData: OnboardingData) => void;
+}
+
+export default function BirthLocationStep({ data, update, next, back, onFinish }: BirthLocationStepProps) {
   const [query, setQuery] = useState<string>(data.birthPlace || '');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<PlacePrediction[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [selectedCity, setSelectedCity] = useState<string>(data.birthPlace || '');
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
+  const activeControllerRef = useRef<AbortController | null>(null);
 
-  // Fetch place suggestions from Google Places API
+  // Update query when data.birthPlace changes (e.g., when navigating back)
+  useEffect(() => {
+    if (data.birthPlace && data.birthPlace !== query) {
+      console.log('🔄 Restoring birthPlace from data:', data.birthPlace);
+      setQuery(data.birthPlace);
+      setSelectedCity(data.birthPlace);
+    }
+  }, [data.birthPlace]);
+
+  // Fetch place suggestions from GeoNames API
   const fetchPlaceSuggestions = async (input: string) => {
     if (!input.trim() || input.length < 3) {
       setSuggestions([]);
@@ -87,20 +112,95 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
 
     setIsSearching(true);
     try {
-      const url = `${PLACES_API_URL}?input=${encodeURIComponent(input)}&types=(cities)&key=${GOOGLE_MAPS_API_KEY}`;
-      const response = await fetch(url);
+      if (!GEONAMES_USERNAME) {
+        console.error('GeoNames username not configured');
+        setSuggestions([]);
+        setIsSearching(false);
+        return;
+      }
+
+      // Abort any in-flight request when starting a new one
+      activeControllerRef.current?.abort();
+      const controller = new AbortController();
+      activeControllerRef.current = controller;
+
+      const params = new URLSearchParams({
+        q: input,
+        maxRows: '10',
+        username: GEONAMES_USERNAME,
+        featureClass: 'P', // P = cities, villages, populated places
+        orderby: 'population', // Sort by population (biggest cities first)
+        style: 'FULL', // Include all details
+      });
+
+      const url = `${GEONAMES_API_URL}?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+        signal: controller.signal,
+      });
+
       const data = await response.json();
-      
-      if (data.status === 'OK' && data.predictions) {
-        setSuggestions(data.predictions.slice(0, 4));
+
+      // Check for GeoNames API errors (they return 200 even for errors!)
+      if (data.status) {
+        const errorMsg = data.status.message || 'Unknown GeoNames error';
+        console.error(`❌ GeoNames error: ${errorMsg}`);
+        
+        if (errorMsg.includes('not enabled')) {
+          console.error('⚠️  Enable at: http://www.geonames.org/manageaccount');
+        }
+        
+        setSuggestions([]);
+        setIsSearching(false);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (Array.isArray(data.geonames) && data.geonames.length > 0) {
+        // Convert GeoNames format to our PlacePrediction format
+        const predictions: PlacePrediction[] = data.geonames.map((place: GeoNamesPlace) => {
+          const cityName = place.name;
+          const stateName = place.adminName1;
+          const countryName = place.countryName;
+          
+          // Format: "City, State, Country" or "City, Country" if no state
+          const secondaryText = stateName 
+            ? `${stateName}, ${countryName}`
+            : countryName;
+          const description = stateName
+            ? `${cityName}, ${stateName}, ${countryName}`
+            : `${cityName}, ${countryName}`;
+
+          return {
+            place_id: place.geonameId.toString(),
+            description: description,
+            structured_formatting: {
+              main_text: cityName,
+              secondary_text: secondaryText,
+            },
+          };
+        });
+
+        setSuggestions(predictions.slice(0, 6));
       } else {
         setSuggestions([]);
       }
-    } catch (error) {
-      console.error('Error fetching place suggestions:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        return; // Don't clear suggestions, let the next request handle it
+      }
+      console.error('GeoNames fetch error:', error);
       setSuggestions([]);
     } finally {
       setIsSearching(false);
+      activeControllerRef.current = null;
     }
   };
 
@@ -114,15 +214,24 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
   }, [query]);
 
   const onContinue = () => {
-    if (!query.trim()) return;
+    const birthPlace = query.trim();
+    if (!birthPlace) {
+      console.log('❌ No city entered');
+      return;
+    }
+    console.log('✅ Completing with birthPlace:', birthPlace);
     setIsLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    update({ birthPlace: query.trim() });
     
-    setTimeout(() => {
-      setIsLoading(false);
-      next();
-    }, 500);
+    // Create the complete updated data object
+    const completeData = { ...data, birthPlace };
+    console.log('📦 Complete data being passed:', completeData);
+    
+    // Update local state
+    update({ birthPlace });
+    
+    // Pass the complete data to onFinish
+    onFinish?.(completeData);
   };
 
   return (
@@ -136,7 +245,7 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
                 <Ionicons name="chevron-back" size={22} color={AppColors.onSurface} />
               </TouchableOpacity>
               <View style={styles.stepContainer}>
-                <Text style={styles.stepText}>Step 4 of 4</Text>
+                <Text style={styles.stepText}>Step 5 of 5</Text>
                 {/* Progress */}
                 <View style={styles.progressBar}>
                   <LinearGradient
@@ -148,13 +257,6 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
                 </View>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={back}
-              style={styles.closeButton}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
           </View>
 
           <View style={styles.centerBlock}>
@@ -187,6 +289,8 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
                   setSelectedCity(''); // Reset selected city when user starts typing something different
                 }
               }}
+              allowFontScaling={true}
+              maxFontSizeMultiplier={1.3}
               placeholder={query.trim() ? "" : "Enter your birth city..."}
               placeholderTextColor="rgba(255,255,255,0.5)"
               returnKeyType="search"
@@ -244,8 +348,8 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
                   >
                     <Ionicons name="location" size={16} color={AppColors.secondary} style={styles.suggestionIcon} />
                     <View style={styles.suggestionTextContainer}>
-                      <Text style={styles.suggestionMainText}>{item.structured_formatting.main_text}</Text>
-                      <Text style={styles.suggestionSecondaryText}>{item.structured_formatting.secondary_text}</Text>
+                      <Text style={styles.suggestionMainText}>{item.structured_formatting?.main_text || item.description}</Text>
+                      <Text style={styles.suggestionSecondaryText}>{item.structured_formatting?.secondary_text || ''}</Text>
                     </View>
                   </TouchableOpacity>
                 )}
@@ -253,6 +357,7 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
             )}
           </View>
         )}
+          </View>
 
           {/* Bottom Button */}
           <View style={styles.buttonContainer}>
@@ -272,7 +377,6 @@ export default function BirthLocationStep({ data, update, next, back }: StepScre
               </LinearGradient>
             </TouchableOpacity>
           </View>
-          </View>
         </View>
       </TouchableWithoutFeedback>
     </CosmicBackground>
@@ -286,8 +390,6 @@ const styles = StyleSheet.create({
   stepContainer: { marginLeft: 0, width: 120 },
   backCircle: { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
   stepText: { color: AppColors.textSecondary, fontSize: 16 },
-  closeButton: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  closeText: { color: AppColors.onSurface, fontSize: 16, fontWeight: '700' },
   progressBar: { width: '100%', height: 8, backgroundColor: 'rgba(107,76,122,0.3)', borderRadius: 8, overflow: 'hidden', marginTop: 4 },
   progressFill: { height: '100%', borderRadius: 8, shadowColor: AppColors.secondary, shadowOpacity: 0.3, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   centerBlock: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -335,7 +437,7 @@ const styles = StyleSheet.create({
   suggestionMainText: { color: AppColors.onSurface, fontSize: 16, fontWeight: '600' },
   suggestionSecondaryText: { color: 'rgba(255,255,255,0.6)', fontSize: 14, marginTop: 2 },
   buttonContainer: { position: 'absolute', left: 0, right: 0, bottom: 14, paddingBottom: 34, paddingTop: 20, paddingHorizontal: 20 },
-  continueButton: { borderRadius: 15, marginBottom: 16, overflow: 'hidden', width: '100%' },
+  continueButton: { borderRadius: 15, marginBottom: 16, overflow: 'hidden' },
   continueButtonGradient: { paddingVertical: 18, alignItems: 'center', justifyContent: 'center' },
   continueBtnDisabled: { opacity: 0.5 },
   continueButtonText: { color: AppColors.onSurface, fontSize: 18, fontWeight: '600' },

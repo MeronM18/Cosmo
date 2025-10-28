@@ -1,18 +1,20 @@
 import { supabase } from './supabase';
 import * as Linking from 'expo-linking';
-import { openAuthSessionAsync, openBrowserAsync, dismissBrowser } from 'expo-web-browser';
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+const { openAuthSessionAsync, openBrowserAsync, dismissBrowser } = require('expo-web-browser');
+const SecureStore = require('expo-secure-store');
 import * as AuthSession from 'expo-auth-session';
+import { logger } from '../utils/logger';
 
 // Keep a process-wide set of processed OAuth authorization codes
 const processedOAuthCodes = new Set<string>();
-import * as AppleAuthentication from 'expo-apple-authentication';
+const AppleAuthentication = require('expo-apple-authentication');
 
 
 export class AuthService {
     static async signInWithApple() {
         try {
-          console.log('Using native Apple Sign In');
+          logger.log('Using native Apple Sign In');
           
           // Always use native Apple Sign In for better reliability
           const credential = await AppleAuthentication.signInAsync({
@@ -22,7 +24,7 @@ export class AuthService {
             ],
           });
     
-          console.log('Apple credential received:', {
+          logger.log('Apple credential received:', {
             user: credential.user,
             email: credential.email,
             fullName: credential.fullName,
@@ -38,7 +40,7 @@ export class AuthService {
           });
     
           if (error) {
-            console.error('Supabase Apple sign in error:', error);
+            logger.error('Supabase Apple sign in error:', error);
             
             // Handle specific audience error for Expo development
             if (error.message?.includes('Unacceptable audience')) {
@@ -48,28 +50,41 @@ export class AuthService {
             throw error;
           }
     
-          console.log('Apple sign in successful:', data.user?.email);
+          logger.log('Apple sign in successful:', data.user?.email);
           return data;
         } catch (error: any) {
           if (error.code === 'ERR_REQUEST_CANCELED') {
-            console.log('Apple Sign In was cancelled by user');
+            logger.log('Apple Sign In was cancelled by user');
             throw new Error('Sign in was cancelled');
           }
-          console.error('Apple Sign In error:', error);
+          logger.error('Apple Sign In error:', error);
           throw error;
         }
       }
 
   static async signInWithGoogle() {
+    // Use different return URLs for simulator vs real device
+    const isSimulator = __DEV__ && Platform.OS === 'ios';
+    
     try {
-      console.log('🔄 Starting Google OAuth (openAuthSessionAsync) for Expo Go...');
-
-      // Use the canonical Expo Go return URL that our handler understands
-      const returnUrl = Linking.createURL('/--/auth/callback');
-      console.log('📍 Return URL:', returnUrl);
+      logger.log('🔄 Starting Google OAuth (openAuthSessionAsync) for Expo Go...');
+      let returnUrl, fallbackReturnUrl;
+      
+      if (isSimulator) {
+        // For iOS Simulator, use localhost
+        returnUrl = 'exp://localhost:8082/--/auth/callback';
+        fallbackReturnUrl = 'exp://127.0.0.1:8082/--/auth/callback';
+      } else {
+        // For real devices, use the network IP
+        returnUrl = Linking.createURL('--/auth/callback');
+        fallbackReturnUrl = 'exp://localhost:8082/--/auth/callback';
+      }
+      
+      logger.log('📍 Return URL:', returnUrl);
+      logger.log('📍 Fallback Return URL:', fallbackReturnUrl);
 
       // Kick off OAuth with Supabase using the same return URL
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      let { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: returnUrl,
@@ -81,12 +96,38 @@ export class AuthService {
         },
       });
 
+      // If the first attempt fails, try with fallback URL
+      if (error && error.message?.includes('redirect')) {
+        logger.log('🔄 Retrying with fallback return URL...');
+        const retryResult = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: fallbackReturnUrl,
+            scopes: 'email profile openid',
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        });
+        data = retryResult.data;
+        error = retryResult.error;
+      }
+
       if (error) throw error;
       if (!data?.url) throw new Error('No OAuth URL received from Supabase');
 
-      console.log('🌐 Opening OAuth auth session...');
-      const result = await openAuthSessionAsync(data.url, returnUrl);
-      console.log('🔍 Auth session result:', result);
+      logger.log('🌐 Opening OAuth auth session...');
+      
+      // Add timeout to prevent hanging on OAuth (longer for simulator)
+      const timeoutDuration = isSimulator ? 90000 : 45000; // 90s for simulator, 45s for device
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('OAuth session timeout')), timeoutDuration);
+      });
+      
+      const authSessionPromise = openAuthSessionAsync(data.url, returnUrl);
+      const result = await Promise.race([authSessionPromise, timeoutPromise]);
+      logger.log('🔍 Auth session result:', result);
 
       if (result.type === 'success' && result.url) {
         // Parse code from the returned URL and exchange immediately
@@ -97,11 +138,11 @@ export class AuthService {
         if (err) throw new Error(`OAuth error: ${err}`);
         if (!code) throw new Error('No authorization code found in callback URL');
 
-        console.log('🔑 Exchanging authorization code for session...');
+        logger.log('🔑 Exchanging authorization code for session...');
         const { data: sessionData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
         if (exchangeError) throw exchangeError;
 
-        console.log('🎉 Google OAuth completed:', sessionData.user?.email);
+        logger.log('🎉 Google OAuth completed:', sessionData.user?.email);
         return { user: sessionData.user, session: sessionData.session };
       }
 
@@ -113,14 +154,27 @@ export class AuthService {
 
       throw new Error(`OAuth failed: ${result.type}`);
     } catch (error: any) {
-      console.error('💥 Google OAuth error:', error);
+      logger.error('💥 Google OAuth error:', error);
+      
+      // Handle specific network errors
+      if (error.message?.includes('Network request failed') || 
+          error.message?.includes('network connection was lost') ||
+          error.message?.includes('OAuth session timeout')) {
+        
+        if (isSimulator) {
+          throw new Error('OAuth failed in simulator. This is a known issue with iOS Simulator. Please try on a real device or check your Supabase redirect URL configuration.');
+        } else {
+          throw new Error('Network connection lost during sign-in. Please check your internet connection and try again.');
+        }
+      }
+      
       throw error;
     }
   }
 
   static async handleAuthCallback(url: string) {
     try {
-      console.log('Processing auth callback with URL:', url);
+      logger.log('Processing auth callback with URL:', url);
       
       // Extract parameters from the URL
       const urlObj = new URL(url);
@@ -131,7 +185,7 @@ export class AuthService {
       
       // Check for OAuth errors first
       if (error) {
-        console.error('OAuth error received:', error, errorDescription);
+        logger.error('OAuth error received:', error, errorDescription);
         throw new Error(`OAuth error: ${error} - ${errorDescription || 'Unknown error'}`);
       }
       
@@ -139,11 +193,11 @@ export class AuthService {
         throw new Error('No authorization code found in callback URL');
       }
       
-      console.log('Processing auth callback with code:', code.substring(0, 8) + '...');
+      logger.log('Processing auth callback with code:', code.substring(0, 8) + '...');
 
       // Global de-dupe: don't exchange the same code twice
       if (processedOAuthCodes.has(code)) {
-        console.log('Auth code already processed, skipping exchange.');
+        logger.log('Auth code already processed, skipping exchange.');
         return { user: supabase.auth.getUser() } as any;
       }
       processedOAuthCodes.add(code);
@@ -151,23 +205,23 @@ export class AuthService {
       // Close the browser immediately when callback is received
       try {
         await dismissBrowser();
-        console.log('Browser dismissed');
+        logger.log('Browser dismissed');
       } catch (e) {
-        console.log('Could not dismiss browser:', e);
+        logger.log('Could not dismiss browser:', e);
       }
       
       // Exchange the code for a session using Supabase's exchangeCodeForSession
       const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       
       if (exchangeError) {
-        console.error('Token exchange error:', exchangeError);
+        logger.error('Token exchange error:', exchangeError);
         throw exchangeError;
       }
       
-      console.log('Token exchange successful, user:', data.user?.email);
+      logger.log('Token exchange successful, user:', data.user?.email);
       return data;
     } catch (error: any) {
-      console.error('Handle auth callback error:', error);
+      logger.error('Handle auth callback error:', error);
       throw error;
     }
   }
@@ -176,19 +230,28 @@ export class AuthService {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error('Sign out error:', error);
+        logger.error('Sign out error:', error);
         throw error;
       }
-      console.log('Sign out successful');
+      logger.log('Sign out successful');
     } catch (error: any) {
-      console.error('Sign out error:', error);
+      logger.error('Sign out error:', error);
       throw error;
     }
   }
 
   static async getCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user;
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) {
+        logger.error('Error getting current user:', error);
+        return null;
+      }
+      return user;
+    } catch (error) {
+      logger.error('Network error getting current user:', error);
+      return null;
+    }
   }
 
   static async upsertUserProfile() {
@@ -214,7 +277,7 @@ export class AuthService {
         .select();
       
       if (error) {
-        console.error('Profile upsert error:', error);
+        logger.error('Profile upsert error:', error);
         
         // If it's an RLS policy error, provide helpful message
         if (error.message?.includes('row-level security policy')) {
@@ -224,10 +287,10 @@ export class AuthService {
         throw error;
       }
       
-      console.log('Profile upsert successful:', data?.[0]?.id);
+      logger.log('Profile upsert successful:', data?.[0]?.id);
       return data?.[0] ?? null;
     } catch (error: any) {
-      console.error('Profile upsert failed:', error);
+      logger.error('Profile upsert failed:', error);
       throw error;
     }
   }
@@ -236,11 +299,11 @@ export class AuthService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        console.log('No user found in hasCompletedOnboarding');
+        logger.log('No user found in hasCompletedOnboarding');
         return false;
       }
 
-      console.log('Checking onboarding for user:', user.id);
+      logger.log('Checking onboarding for user:', user.id);
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, full_name, birth_date, birth_place')
@@ -248,22 +311,23 @@ export class AuthService {
         .single();
 
       if (error) {
-        console.log('Error fetching user profile:', error.message);
+        logger.log('Error fetching user profile:', error.message);
         return false;
       }
 
       if (!data) {
-        console.log('No user profile found');
+        logger.log('No user profile found');
         return false;
       }
 
-      console.log('User profile data:', data);
+      logger.log('User profile data:', data);
       // Check if required fields are filled
       const isComplete = !!(data.full_name && data.birth_date && data.birth_place);
-      console.log('Onboarding complete:', isComplete);
+      logger.log('Onboarding complete:', isComplete);
       return isComplete;
     } catch (error) {
-      console.error('Error checking onboarding status:', error);
+      logger.error('Network error checking onboarding status:', error);
+      // Return false for network errors so user can retry
       return false;
     }
   }
@@ -277,23 +341,29 @@ export class AuthService {
         .from('user_profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
 
       if (error) {
-        console.error('Error fetching user profile:', error);
+        logger.error('Error fetching user profile:', error);
+        return null;
+      }
+
+      // Return null if no profile exists (new user who hasn't completed onboarding)
+      if (!data) {
+        logger.log('No user profile found - user needs to complete onboarding');
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      logger.error('Network error getting user profile:', error);
       return null;
     }
   }
 
   static onAuthChanged(callback: (event: string, session: any) => void) {
     return supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email || 'no user');
+      logger.log('Auth state changed:', event, session?.user?.email || 'no user');
       
       // Don't automatically create profile - wait for onboarding completion
       // try {
@@ -313,5 +383,54 @@ export class AuthService {
     // Profile upsert during onboarding is the source of truth.
     // This method exists to satisfy control flow after persistence.
     return;
+  }
+
+  static async saveOnboardingData(data: any): Promise<boolean> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        logger.log('No authenticated user found for saving onboarding data');
+        return false;
+      }
+
+      logger.log('Saving onboarding data for user:', user.id);
+      
+      // Convert birthTime Date to TIME format (HH:MM:SS) for PostgreSQL
+      let birthTimeFormatted = null;
+      if (data.birthTime) {
+        const birthTimeDate = new Date(data.birthTime);
+        birthTimeFormatted = `${birthTimeDate.getHours().toString().padStart(2, '0')}:${birthTimeDate.getMinutes().toString().padStart(2, '0')}:00`;
+      }
+      
+      // Get user's timezone
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      const { error } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          full_name: data.fullName,
+          birth_date: data.birthDate,
+          birth_place: data.birthPlace,
+          birth_time: birthTimeFormatted,
+          gender: data.gender || null,
+          timezone: timezone,
+          email: user.email,
+          subscription_status: 'free',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        logger.error('Error saving onboarding data:', error);
+        return false;
+      }
+
+      logger.log('Onboarding data saved successfully');
+      return true;
+    } catch (error) {
+      logger.error('Error in saveOnboardingData:', error);
+      return false;
+    }
   }
 }

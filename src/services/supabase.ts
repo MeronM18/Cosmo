@@ -24,6 +24,13 @@ export const supabase = createClient(Config.supabaseUrl, Config.supabaseAnonKey,
     persistSession: true,
     detectSessionInUrl: false, // We handle OAuth callbacks manually in App.tsx
   },
+  global: {
+    // Use React Native's polyfilled fetch explicitly
+    fetch: (...args) => fetch(...args),
+    headers: {
+      'X-Client-Info': 'cosmo-app',
+    },
+  },
 });
 
 export class SupabaseService {
@@ -34,10 +41,32 @@ export class SupabaseService {
         .select('id')
         .limit(1);
       
-      console.log('Supabase test:', { data, error });
       return !error;
     } catch (error) {
-      console.error('Supabase connection failed:', error);
+      return false;
+    }
+  }
+
+  static async checkNetworkConnectivity(): Promise<boolean> {
+    try {
+      // Create a timeout promise with longer timeout for better reliability
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Network timeout')), 10000); // Increased to 10 seconds
+      });
+      
+      // Create the fetch promise with better error handling
+      const fetchPromise = fetch('https://httpbin.org/status/200', {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      
+      // Race between fetch and timeout
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      return response.ok;
+    } catch (error) {
+      // Silently fail network checks - don't block the app
       return false;
     }
   }

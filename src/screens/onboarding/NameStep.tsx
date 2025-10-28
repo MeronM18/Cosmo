@@ -81,28 +81,18 @@ export default function NameStep({ data, update, next, back }: StepScreenProps) 
               <Ionicons name="chevron-back" size={22} color={AppColors.onSurface} />
             </TouchableOpacity>
             <View style={styles.stepContainer}>
-              <Text style={styles.stepText}>Step 1 of 4</Text>
+              <Text style={styles.stepText}>Step 1 of 5</Text>
               {/* Progress */}
               <View style={styles.progressBar}>
                 <LinearGradient
                   colors={[AppColors.secondary, AppColors.secondaryVariant]}
                   start={{ x: 0, y: 0.5 }}
                   end={{ x: 1, y: 0.5 }}
-                  style={[styles.progressFill, { width: '25%' }]}
+                  style={[styles.progressFill, { width: '20%' }]}
                 />
               </View>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              // attempt to close: go back or go to first step if available
-              back();
-            }}
-            style={styles.closeButton}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.closeText}>✕</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.centerBlock}>
@@ -124,6 +114,8 @@ export default function NameStep({ data, update, next, back }: StepScreenProps) 
                 placeholderTextColor="#A68CCF"
                 autoCapitalize="words"
                 returnKeyType="done"
+                allowFontScaling={true}
+                maxFontSizeMultiplier={1.3}
                 onSubmitEditing={() => {
                   if (name.trim()) {
                     onContinue();

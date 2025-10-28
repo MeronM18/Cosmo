@@ -18,47 +18,83 @@ import LunaContent from '../components/LunaContent';
 import SoulmateContent from '../components/SoulmateContent';
 import LunaChatContent from '../components/LunaChatContent';
 import LunaIntroScreen from '../components/LunaIntroScreen';
+import SettingsScreen from './SettingsScreen';
+import { SettingsProvider } from '../contexts/SettingsContext';
+import { useUser, useUserGreeting, useUserZodiac, useUserBirthData } from '../contexts/UserContext';
 
 const { width, height } = Dimensions.get('window');
 
 interface HomeScreenProps {
   onClose?: () => void;
+  onLogout?: () => void;
+  userId?: string;
+  onAccountDeleted?: () => void;
 }
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ onClose, onLogout, userId, onAccountDeleted }) => {
   const [fontsLoaded] = useFonts({
     Cinzel_700Bold,
     Cinzel_400Regular,
   });
 
+  // Use personalized user data from context
+  const { user, isLoading: userLoading } = useUser();
+  const userGreeting = useUserGreeting();
+  const { sign: zodiacSign, symbol: zodiacSymbol } = useUserZodiac();
+  const { birthDate, birthTime, birthPlace, hasBirthTime } = useUserBirthData();
+
   const [selectedTab, setSelectedTab] = useState('horoscopes');
   const [lunaRoomState, setLunaRoomState] = useState<'intro' | 'chat'>('intro');
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Fallback data for when user is loading or not available
+  const userData = user ? {
+    name: user.fullName,
+    zodiacSign: user.zodiacSign,
+    zodiacSymbol: user.zodiacSymbol,
+    isPremium: user.isPremium,
+    readingStreak: 7, // TODO: Get from user profile
+    cosmicRating: 4, // TODO: Get from user profile
+    luckyNumbers: [7, 14, 23, 31], // TODO: Calculate from birth data
+    compatibleSigns: ["Cancer", "Pisces", "Capricorn"], // TODO: Calculate from zodiac
+    birthDate: user.birthDate,
+    birthTime: user.birthTime || "12:00",
+    birthLocation: user.birthPlace
+  } : {
+    name: "User",
+    zodiacSign: "Unknown",
+    zodiacSymbol: "?",
+    isPremium: false,
+    readingStreak: 0,
+    cosmicRating: 0,
+    luckyNumbers: [],
+    compatibleSigns: [],
+    birthDate: "",
+    birthTime: "",
+    birthLocation: ""
+  };
   const scrollY = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
   const navIndicatorAnim = useRef(new Animated.Value(0)).current;
   const navBarOpacity = useRef(new Animated.Value(1)).current;
   const navBarTranslateY = useRef(new Animated.Value(0)).current;
 
-  // Sample data - in real app this would come from API
-  const userData = {
-    name: "Sarah",
-    zodiacSign: "Scorpio",
-    zodiacSymbol: "Scorpio",
-    isPremium: false,
-    readingStreak: 7,
-    cosmicRating: 4,
-    luckyNumbers: [7, 14, 23, 31],
-    compatibleSigns: ["Cancer", "Pisces", "Capricorn"]
-  };
 
   // LunaContent compatible user data
-  const lunaUserData = {
-    name: "Sarah",
-    zodiacSign: "Scorpio",
-    birthDate: new Date('1990-11-15'),
-    birthTime: new Date('1990-11-15T14:30:00'),
-    birthLocation: "New York, NY",
-    subscriptionLevel: userData.isPremium ? 'premium' as const : 'free' as const
+  const lunaUserData = user ? {
+    name: user.fullName,
+    zodiacSign: user.zodiacSign,
+    birthDate: new Date(user.birthDate),
+    birthTime: user.birthTime ? new Date(`${user.birthDate}T${user.birthTime}:00`) : new Date(`${user.birthDate}T12:00:00`),
+    birthLocation: user.birthPlace,
+    subscriptionLevel: user.isPremium ? 'premium' as const : 'free' as const
+  } : {
+    name: "User",
+    zodiacSign: "Unknown",
+    birthDate: new Date(),
+    birthTime: new Date(),
+    birthLocation: "Unknown",
+    subscriptionLevel: 'free' as const
   };
 
   const currentDate = new Date().toLocaleDateString('en-US', {
@@ -67,54 +103,87 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
     day: 'numeric'
   });
 
-  const currentTime = new Date().getHours();
-  const greeting = currentTime < 12 ? "Good morning" : currentTime < 18 ? "Good afternoon" : "Good evening";
-
   useEffect(() => {
     const listener = scrollY.addListener(({ value }) => {
       parallaxAnim.setValue(value * 0.5);
       
-      // Navigation bar hide/show logic - immediate response with smooth animation
-      const scrollThreshold = 100; // Hide nav bar after scrolling 100px
-      
-      if (value > scrollThreshold) {
-        // Hide navigation bar with smooth animation when scrolling down past threshold
-        Animated.parallel([
-          Animated.timing(navBarOpacity, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(navBarTranslateY, {
-            toValue: 100,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start();
-      } else {
-        // Show navigation bar with smooth animation when scrolling back up
-        Animated.parallel([
-          Animated.timing(navBarOpacity, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.timing(navBarTranslateY, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start();
+      // Only apply scroll-based navigation bar logic when not in Luna chat
+      if (!(selectedTab === 'chat' && lunaRoomState === 'chat')) {
+        // Navigation bar hide/show logic - immediate response with smooth animation
+        const scrollThreshold = 100; // Hide nav bar after scrolling 100px
+        
+        if (value > scrollThreshold) {
+          // Hide navigation bar with smooth animation when scrolling down past threshold
+          Animated.parallel([
+            Animated.timing(navBarOpacity, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(navBarTranslateY, {
+              toValue: 100,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        } else {
+          // Show navigation bar with smooth animation when scrolling back up
+          Animated.parallel([
+            Animated.timing(navBarOpacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+            Animated.timing(navBarTranslateY, {
+              toValue: 0,
+              duration: 200,
+              useNativeDriver: true,
+            }),
+          ]).start();
+        }
       }
     });
 
-    // Initialize navigation indicator position
-    navIndicatorAnim.setValue(0);
+    // Initialize navigation indicator position for the current selected tab
+    const initialTabIndex = ['horoscopes', 'moon', 'compatibility', 'chat'].indexOf(selectedTab);
+    navIndicatorAnim.setValue(initialTabIndex);
 
     return () => {
       scrollY.removeListener(listener);
     };
-  }, []);
+  }, [selectedTab, lunaRoomState]);
+
+  // Ensure navigation bar is visible when returning from Luna chat
+  useEffect(() => {
+    if (selectedTab === 'chat' && lunaRoomState === 'intro') {
+      // Force navigation bar to be visible when returning to Luna intro
+      Animated.parallel([
+        Animated.timing(navBarOpacity, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(navBarTranslateY, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [lunaRoomState, selectedTab]);
+
+  // Ensure navigation indicator is positioned correctly for the current tab
+  useEffect(() => {
+    const tabIndex = ['horoscopes', 'moon', 'compatibility', 'chat'].indexOf(selectedTab);
+    if (tabIndex !== -1) {
+      Animated.spring(navIndicatorAnim, {
+        toValue: tabIndex,
+        useNativeDriver: false,
+        tension: 100,
+        friction: 8,
+      }).start();
+    }
+  }, [selectedTab]);
 
   const handleTabPress = (tab: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -143,14 +212,66 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
   const handleExitLunaRoom = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setLunaRoomState('intro');
+    
+    // Ensure navigation bar is visible when exiting Luna chat
+    Animated.parallel([
+      Animated.timing(navBarOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(navBarTranslateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const handleCardPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   };
 
+  const handleOpenSettings = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowSettings(true);
+  };
+
+  const handleCloseSettings = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowSettings(false);
+  };
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
+
+  const handleSaveUserData = (updatedData: any) => {
+    // User data is now managed by UserContext
+    // This function is kept for compatibility but doesn't need to do anything
+    console.log('User data updated:', updatedData);
+  };
+
   if (!fontsLoaded) {
     return null;
+  }
+
+  // If settings is open, render only the settings screen
+  if (showSettings) {
+    return (
+      <SettingsProvider>
+        <SettingsScreen
+          userData={userData}
+          onClose={handleCloseSettings}
+          onLogout={handleLogout}
+          onSaveUserData={handleSaveUserData}
+          userId={user?.id || userId || 'default-user-id'}
+          onAccountDeleted={onAccountDeleted || (() => {})}
+        />
+      </SettingsProvider>
+    );
   }
 
   return (
@@ -179,24 +300,17 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
         ))}
       </Animated.View>
 
-      {/* X Button */}
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={onClose}
-      >
-        <Text style={styles.closeButtonText}>✕</Text>
-      </TouchableOpacity>
 
       {/* Header (hidden in Luna chat room) */}
       {!(selectedTab === 'chat' && lunaRoomState === 'chat') && (
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={[styles.pageTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
-              Welcome back, {userData.name}
+              {userGreeting}
             </Text>
             <Text style={styles.date}>{currentDate}</Text>
           </View>
-          <TouchableOpacity style={styles.profileAvatar}>
+          <TouchableOpacity style={styles.profileAvatar} onPress={handleOpenSettings}>
             <LinearGradient
               colors={['#FFD700', '#FFA500']}
               style={styles.avatarGradient}
@@ -250,7 +364,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ onClose }) => {
         )
       ) : null}
 
-      {/* Bottom Navigation - Pill Shape (hidden in Luna chat room) */}
+      {/* Bottom Navigation - Pill Shape (hidden only in Luna chat room) */}
       {!(selectedTab === 'chat' && lunaRoomState === 'chat') && (
         <Animated.View 
           style={[
@@ -403,29 +517,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 1,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: AppColors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  closeButtonText: {
-    color: AppColors.onSurface,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 80,
     paddingBottom: 30,
   },
   headerLeft: {
@@ -1028,7 +1125,7 @@ const styles = StyleSheet.create({
   },
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     left: 0,
     right: 0,
     height: 110,
