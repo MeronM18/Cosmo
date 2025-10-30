@@ -308,7 +308,7 @@ export class AuthService {
         .from('user_profiles')
         .select('id, full_name, birth_date, birth_place')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         logger.log('Error fetching user profile:', error.message);

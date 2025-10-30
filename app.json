@@ -19,7 +19,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.vengeanceintelligence.cosmo",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Cosmo uses your location to show astronomical information relevant to your position.",
+        "NSLocationWhenInUseUsageDescription": "Cosmo needs your location to show accurate moon phases, lunar times, and celestial events for your area.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Cosmo needs your location to show accurate moon phases, lunar times, and celestial events for your area.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },

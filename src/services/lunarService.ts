@@ -1,5 +1,6 @@
 import * as SunCalc from 'suncalc';
 import * as Location from 'expo-location';
+import { Alert, Platform } from 'react-native';
 
 export interface MoonPhaseData {
   phase: string;
@@ -88,6 +89,25 @@ class LunarService {
       }
       
       // Request permission if we don't have it
+      // iOS-only pre-permission rationale to provide an Apple-style prompt before system dialog
+      if (Platform.OS === 'ios') {
+        const userConsented = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'Cosmo Would Like to Use Your Location',
+            'Cosmo needs your location to show accurate moon phases, lunar times, and celestial events for your area.',
+            [
+              { text: "Don't Allow", style: 'cancel', onPress: () => resolve(false) },
+              { text: 'Allow', onPress: () => resolve(true) },
+            ],
+            { cancelable: true }
+          );
+        });
+        if (!userConsented) {
+          this.locationPermissionGranted = false;
+          return false;
+        }
+      }
+
       const { status } = await Location.requestForegroundPermissionsAsync();
       this.locationPermissionGranted = status === 'granted';
       

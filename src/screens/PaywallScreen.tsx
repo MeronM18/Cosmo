@@ -613,7 +613,7 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onStartTrial }) => {
             <View style={styles.trialContent}>
               <View style={styles.trialText}>
                 <Text style={styles.trialLabel}>1 Day Free Trial</Text>
-                <Text style={styles.trialSubtext}>Then $49.99 annually</Text>
+                <Text style={styles.trialSubtext}>Then $49.99 yearly</Text>
               </View>
               <View style={[styles.radioCircle, selected === 'trial' && styles.radioSelected]}>
                 {selected === 'trial' && <Text style={styles.checkmark}>✓</Text>}
@@ -696,7 +696,7 @@ const PaywallScreen: React.FC<PaywallScreenProps> = ({ onStartTrial }) => {
         
         <Text style={styles.ctaCaption}>
           {selected === 'trial' 
-            ? 'Try free for 1 day, then $49.99 annually.' 
+            ? 'Try free for 1 day, then $49.99 yearly.' 
             : selected === 'weekly' 
             ? 'Just $4.99 per week. Cancel anytime.' 
             : 'Just $49.99 per year. Cancel anytime.'

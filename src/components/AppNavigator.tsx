@@ -30,7 +30,7 @@ function AppNavigatorInner() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   
   // Get user data from UserContext
-  const { user, isLoading: userLoading } = useUser();
+  const { user, isLoading: userLoading, refreshUserData } = useUser();
 
   // Check user status immediately when component mounts
   // This will determine the correct screen to show after splash
@@ -187,16 +187,38 @@ function AppNavigatorInner() {
     setAppState('landing');
   };
 
-  const handleOnboardingComplete = (data: OnboardingData) => {
-    // Store onboarding data ONLY in memory (temporary)
-    // Rule 1: Never save without account
+  const handleOnboardingComplete = async (data: OnboardingData) => {
+    // If the user is already authenticated (e.g., signed in with Apple first),
+    // persist immediately and route based on profile/premium.
+    if (isAuthenticated) {
+      setAppState('loading');
+      try {
+        const saved = await AuthService.saveOnboardingData(data);
+        if (saved) {
+          await refreshUserData();
+          setHasCompletedOnboarding(true);
+          let premium = false;
+          try {
+            const profile = await AuthService.getCurrentUserProfile();
+            premium = !!profile && (profile.subscription_status === 'premium');
+            setIsPremium(premium);
+          } catch {}
+          setAppState(premium ? 'authenticated' : 'paywall');
+          return;
+        }
+        // If save failed, stay on onboarding for retry
+        setAppState('onboarding');
+      } catch (e) {
+        setAppState('onboarding');
+      }
+      return;
+    }
+
+    // Not authenticated yet: keep the previous flow (collect first, then login)
     setTemporaryOnboardingData(data);
-    
-    // Show loading screen for 3 seconds, then go to login
     setLoadingFromOnboarding(true);
-    setCameFromOnboarding(true); // Track that we came from onboarding
+    setCameFromOnboarding(true);
     setAppState('loading');
-    
     setTimeout(() => {
       setLoadingFromOnboarding(false);
       setAppState('login');
@@ -204,29 +226,45 @@ function AppNavigatorInner() {
   };
 
   const handleLoginSuccess = async () => {
-    // Show loading screen while saving data
+    // Show loading screen while we decide next route
     setAppState('loading');
-    
     try {
-      // Rule 2: Save only after login success
+      // If onboarding data was collected pre-auth, persist it now
       if (temporaryOnboardingData) {
-        // Save onboarding data to Supabase
-        const success = await AuthService.saveOnboardingData(temporaryOnboardingData);
-        
-        if (success) {
-          setTemporaryOnboardingData(null); // Clear temporary data after saving
+        const saved = await AuthService.saveOnboardingData(temporaryOnboardingData);
+        if (saved) {
+          setTemporaryOnboardingData(null);
         }
       }
-      
-      // Check premium status after saving data
-      // TODO: Check if user is premium
-      // For now, assume user is not premium
+
+      // Refresh user context from Supabase
+      await refreshUserData();
+
+      // Determine if profile exists / onboarding completed
+      const profileExists = await AuthService.hasCompletedOnboarding();
+      setHasCompletedOnboarding(profileExists);
       setIsAuthenticated(true);
-      setIsPremium(false);
-      setAppState('paywall');
+
+      if (!profileExists) {
+        // New account without profile → go to onboarding
+        setOnboardingStartStep(1);
+        setAppState('onboarding');
+        return;
+      }
+
+      // If profile exists, fetch and set premium status if possible
+      let premium = false;
+      try {
+        const profile = await AuthService.getCurrentUserProfile();
+        premium = !!profile && (profile.subscription_status === 'premium');
+        setIsPremium(premium);
+      } catch {}
+
+      // Route based on freshly computed premium value
+      setAppState(premium ? 'authenticated' : 'paywall');
     } catch (error) {
-      // Handle error appropriately
-      setAppState('paywall'); // Fallback to paywall
+      // If anything fails, default to onboarding for safety on first-time users
+      setAppState('onboarding');
     }
   };
 

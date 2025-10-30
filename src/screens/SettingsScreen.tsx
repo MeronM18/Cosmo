@@ -8,6 +8,7 @@ import {
   Dimensions,
   Animated,
   Alert,
+  Linking,
   Switch,
   Platform,
 } from 'react-native';
@@ -145,7 +146,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   const handlePrivacySettings = () => {
     haptics.light();
-    Alert.alert('Privacy Settings', 'Privacy settings feature coming soon!');
+    Linking.openURL('https://www.cosmoastrology.app/');
   };
 
   const handleCloseAccountSettings = () => {
@@ -234,6 +235,19 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
         ]}
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Premium Banner */}
+          <LinearGradient
+            colors={['#A66CFF', '#6246EA']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.premiumBanner}
+          >
+            <View style={styles.premiumBadge}>
+              <Ionicons name="star" size={16} color="#0A0E1A" />
+            </View>
+            <Text style={[styles.premiumText, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>Premium</Text>
+          </LinearGradient>
+
           {/* Profile Section */}
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, fontsLoaded && { fontFamily: 'Cinzel_700Bold' }]}>
@@ -403,6 +417,30 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingBottom: 40,
+  },
+  premiumBanner: {
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  premiumBadge: {
+    backgroundColor: '#FFD700',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  premiumText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   section: {
     marginBottom: 30,

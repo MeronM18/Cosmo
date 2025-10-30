@@ -65,7 +65,6 @@ const CustomTimeWheel: React.FC<TimeWheelProps> = ({ value, onChange }) => {
     const y = event.nativeEvent.contentOffset.y;
     const index = Math.round(y / ITEM_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
-    console.log('Scroll event - Y:', y, 'Index:', index, 'Value:', items[clampedIndex]);
     setter(items[clampedIndex]);
   };
 
